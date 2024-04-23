@@ -5,26 +5,27 @@ build-backend = "hatchling.build"
 [project]
 name = "antares-web-installer"
 dynamic = ["version"]
-description = ''
+description = 'Installation application for Antares Web Desktop'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-keywords = []
+keywords = ["antares", "instalaltion", "web", "desktop", "setup", "windows", "ubuntu"]
 authors = [
-  { name = "olfa.mizen_externe@rte-france.com", email = "olfa.mizen_externe@rte-france.com" },
+    { name = "Laurent LAPORTE", email = "laurent.laporte.pro@gmail.com" },
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = ["pyyaml"]
+
+dependencies = ["pyyaml", "click"]
 
 [project.urls]
 Documentation = "https://github.com/AntaresSimulatorTeam/antares-web-installer#readme"
@@ -33,22 +34,24 @@ Source = "https://github.com/AntaresSimulatorTeam/antares-web-installer"
 
 [tool.hatch.version]
 path = "src/antares_web_installer/__about__.py"
+attr = "__version__"
 
 [tool.hatch.envs.default]
 dependencies = [
-  "coverage[toml]>=6.5",
-  "pytest",
+    "coverage[toml]>=6.5",
+    "pytest<8",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
-  "- coverage combine",
-  "coverage report",
+    "- coverage combine",
+    "coverage report --show-missing",
+    "coverage html",
 ]
 cov = [
-  "test-cov",
-  "cov-report",
+    "test-cov",
+    "cov-report",
 ]
 
 [[tool.hatch.envs.all.matrix]]
@@ -56,17 +59,31 @@ python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [tool.hatch.envs.types]
 dependencies = [
-  "mypy>=1.0.0",
+    "pytest<8",
+    "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/antares_web_installer tests}"
+
+[tool.hatch.envs.docs]
+detached = true
+dependencies = ["mkdocs"]
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build -f mkdocs.yml {args}"
+serve = "mkdocs serve -f mkdocs.yml {args}"
+gh-deploy = "mkdocs gh-deploy -f mkdocs.yml {args}"
+
+
+[tool.mypy]
+mypy_path = 'src, tests'
 
 [tool.coverage.run]
 source_pkgs = ["antares_web_installer", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/antares_web_installer/__about__.py",
+    "src/antares_web_installer/__about__.py",
 ]
 
 [tool.coverage.paths]
@@ -75,7 +92,91 @@ tests = ["tests", "*/antares-web-installer/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]
+
+[tool.black]
+target-version = ["py38"]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+src_paths = ["src", "tests"]
+skip_gitignore = true
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 120
+indent-width = 4
+
+# Assume Python 3.8
+target-version = "py38"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["E4", "E7", "E9", "F"]
+ignore = []
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = true
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
