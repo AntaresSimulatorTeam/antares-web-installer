@@ -67,12 +67,6 @@ This command will run the unit tests and generate a coverage report in the `html
 hatch run types:check
 ```
 
-➢ To check the typing on unit tests, run:
-
-```shell
-hatch run types:check-tests
-```
-
 ## Generating the documentation
 
 ➢ To prepare the documentation environment, run:
