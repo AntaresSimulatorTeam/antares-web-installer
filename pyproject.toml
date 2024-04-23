@@ -40,6 +40,7 @@ attr = "__version__"
 dependencies = [
     "coverage[toml]>=6.5",
     "pytest<8",
+    "pytest-datadir",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
