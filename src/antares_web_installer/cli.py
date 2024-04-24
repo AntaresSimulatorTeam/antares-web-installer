@@ -4,7 +4,7 @@ import click
 
 
 @click.command()
-@click.argument('target_dir', type=click.Path())
+@click.argument("target_dir", type=click.Path())
 def install_cli(target_dir):
     """
     Install Antares Web.
