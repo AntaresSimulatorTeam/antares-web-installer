@@ -1,6 +1,6 @@
 # Development
 
-This projet uses [Hach](https://hatch.pypa.io/latest/) to manage the development environment.
+This projet uses [Hatch](https://hatch.pypa.io/latest/) to manage the development environment.
 
 ## Project setup
 
