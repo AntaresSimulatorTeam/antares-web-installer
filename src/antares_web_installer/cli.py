@@ -1,5 +1,6 @@
 import os
 import click
+import psutil
 from antares_web_installer import DEBUG
 from pathlib import Path
 from installer import install
@@ -29,7 +30,7 @@ else:
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
@@ -39,7 +40,7 @@ def cli():
               show_default=True,
               type=click.Path(),
               help="where to install your application")
-def install_cli(target_dir):
+def install_cli(target_dir: Path) -> None:
     """
     Install Antares Web at the right file locations.
     """
@@ -51,11 +52,27 @@ def install_cli(target_dir):
         src_dir = BASE_DIR.joinpath(Path(src_dir))
     target_dir = target_dir.expanduser()
 
-    # TODO: check whether the server is running
-    # in case it is, stop it
+    # check whether the server is running
+    server_running_handler()
 
     print(f"Starting installation in directory: '{target_dir}'...")
-
     install(src_dir, target_dir)
+    print("Done.")
 
-    print("Installation complete!")
+
+def server_running_handler() -> None:
+    """
+    Check whether antares service is up.
+    In case it is, terminate the process
+    """
+    for proc in psutil.process_iter(['pid', 'name', 'username']):
+        if 'antares' in proc.name().lower():
+            print("Cannot upgrade since the application is running.")
+
+            running_app = psutil.Process(pid=proc.pid)
+            running_app.kill()  # ... or terminate ?
+            running_app.wait(30)
+            assert not running_app.is_running()
+
+            print("The application was successfully stopped.")
+            return

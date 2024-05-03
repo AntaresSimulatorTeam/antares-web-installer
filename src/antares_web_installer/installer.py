@@ -80,9 +80,7 @@ def copy_files(src_dir: Path, target_dir: Path):
     """
     for elt_path in src_dir.iterdir():
         if elt_path.name not in EXCLUDED_FILES:
-            # verbose action
-            print(f"copy {elt_path.name} to {target_dir.name}")
-
+            # verbose action ?
             try:
                 if elt_path.is_file():
                     copy2(elt_path, target_dir)
@@ -103,5 +101,3 @@ def copy_files(src_dir: Path, target_dir: Path):
             # handle other errors
             except BaseException as e:
                 raise InstallError(f"{e}")
-        else:
-            print(f"ignoring {elt_path.name}")
