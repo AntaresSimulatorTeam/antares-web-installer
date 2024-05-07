@@ -26,7 +26,7 @@ class InstallError(Exception):
 def install(src_dir: Path, target_dir: Path) -> None:
     """ """
     # if "AntaresWeb/" directory already exists
-    if target_dir.joinpath("AntaresWeb").is_dir():
+    if target_dir.is_dir():
         # check app version
         version = check_version(target_dir)
 

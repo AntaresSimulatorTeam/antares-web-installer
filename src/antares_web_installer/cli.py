@@ -4,30 +4,14 @@ from pathlib import Path
 import click
 import psutil
 
-from antares_web_installer import DEBUG
 from antares_web_installer.installer import install
 
-# SETTINGS WHEN DEBUGGING
-if DEBUG:
-    BASE_DIR = Path().resolve().parent.parent
-
-    SRC_DIR = "tests/samples/initial/"
-    TARGET_DIR = "tests/samples/results/"
-    if os.name.lower() == "posix":
-        suffix = "posix/opt/antares-web/"
-    else:
-        suffix = "nt/Program Files/AntaresWeb/"
-    TARGET_DIR += suffix
-    SRC_DIR += suffix
-
-# REAL SETTINGS
+if os.name == "posix":
+    TARGET_DIR = "/opt/antares-web/"
 else:
-    if os.name.lower() == "posix":
-        TARGET_DIR = "/opt/antares-web/"
-    else:
-        TARGET_DIR = "C:/Program Files/AntaresWeb/"
+    TARGET_DIR = "C:/Program Files/AntaresWeb/"
 
-    SRC_DIR = ""
+SRC_DIR = "."
 
 
 @click.group()
@@ -37,6 +21,15 @@ def cli() -> None:
 
 @click.command()
 @click.option(
+    "-s",
+    "--source-dir",
+    "src_dir",
+    default=SRC_DIR,
+    show_default=True,
+    type=click.Path(),
+    help="where to find the Antares Web package",
+)
+@click.option(
     "-t",
     "--target-dir",
     default=TARGET_DIR,
@@ -44,16 +37,13 @@ def cli() -> None:
     type=click.Path(),
     help="where to install your application",
 )
-def install_cli(target_dir: str) -> None:
+def install_cli(src_dir: str, target_dir: str) -> None:
     """
     Install Antares Web at the right file locations.
     """
     target_dir = Path(target_dir)
-    src_dir = Path(SRC_DIR)
+    src_dir = Path(src_dir)
 
-    if DEBUG:
-        target_dir = BASE_DIR.joinpath(Path(target_dir))
-        src_dir = BASE_DIR.joinpath(Path(src_dir))
     target_dir = target_dir.expanduser()
 
     # check whether the server is running
