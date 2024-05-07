@@ -25,7 +25,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dependencies = ["pyyaml", "click"]
+dependencies = ['click', 'psutil', 'pyyaml']
 
 [project.urls]
 Documentation = "https://github.com/AntaresSimulatorTeam/antares-web-installer#readme"
@@ -76,7 +76,6 @@ serve = "mkdocs serve -f mkdocs.yml {args}"
 gh-deploy = "mkdocs gh-deploy -f mkdocs.yml {args}"
 
 [tool.hatch.envs.pyinstaller]
-detached = true
 dependencies = ["pyinstaller"]
 
 [tool.hatch.envs.pyinstaller.scripts]
