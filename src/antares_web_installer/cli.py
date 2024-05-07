@@ -14,11 +14,6 @@ else:
 SRC_DIR = "."
 
 
-@click.group()
-def cli() -> None:
-    pass
-
-
 @click.command()
 @click.option(
     "-s",

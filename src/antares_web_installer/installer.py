@@ -1,10 +1,9 @@
 import os
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 from shutil import copy2, copytree, rmtree
-
-from antares_web_installer import DEBUG
 
 from antares_web_installer.config import update_config
 
@@ -25,10 +24,11 @@ class InstallError(Exception):
 
 def install(src_dir: Path, target_dir: Path) -> None:
     """ """
-    # if "AntaresWeb/" directory already exists
-    if target_dir.is_dir():
+    # if the target directory already exists and not empty
+    if target_dir.is_dir() and list(target_dir.iterdir()):
         # check app version
         version = check_version(target_dir)
+        print(f"Version actuelle de l'application : {version}")
 
         # update config file
         config_path = target_dir.joinpath("config.yaml")
@@ -48,16 +48,15 @@ def check_version(target_dir: Path) -> str:
 
     :param target_dir: path of target directory
     """
-    # debug mode
-    if DEBUG:
-        exe_path = target_dir.joinpath("AntaresWeb/AntaresWebServer.py")
-        args = ["python", exe_path, "--version"]
+    script_path = target_dir.joinpath("AntaresWeb/AntaresWebServer.py")
+    if script_path.exists():
+        args = [sys.executable, str(script_path), "--version"]
     else:
         exe_path = target_dir.joinpath("AntaresWeb/AntaresWebServer.exe")
         # check user's os
         if os.name.lower() == "posix":  # if os is linux, remove ".exe"
-            exe_path.with_suffix("")
-        args = [exe_path, "--version"]
+            exe_path = exe_path.with_suffix("")
+        args = [str(exe_path), "--version"]
 
     try:
         version = subprocess.check_output(args, text=True, stderr=subprocess.PIPE).strip()
@@ -65,7 +64,7 @@ def check_version(target_dir: Path) -> str:
         raise InstallError(f"Can't check version: {e}") from e
     except subprocess.CalledProcessError as e:
         reason = textwrap.indent(e.stderr, "  | ", predicate=lambda line: True)
-        raise InstallError(f"Can't check version: {reason}")
+        raise InstallError(f"Can't check version:\n{reason}") from e
 
     return version
 
