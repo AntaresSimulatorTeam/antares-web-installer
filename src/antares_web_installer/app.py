@@ -30,7 +30,7 @@ class App:
         Check whether antares service is up.
         In case it is, terminate the process
         """
-        for proc in psutil.process_iter(['pid', 'name']):
+        for proc in psutil.process_iter(["pid", "name"]):
             if self.app_name in proc.name():
                 print("Cannot upgrade since the application is running.")
 

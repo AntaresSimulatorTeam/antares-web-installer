@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
+
 import click
 import psutil
-from antares_web_installer import DEBUG
-from pathlib import Path
-from installer import install
 
+from antares_web_installer import DEBUG
+from antares_web_installer.installer import install
 
 # SETTINGS WHEN DEBUGGING
 if DEBUG:
@@ -35,12 +36,15 @@ def cli() -> None:
 
 
 @click.command()
-@click.option("-t", "--target-dir",
-              default=TARGET_DIR,
-              show_default=True,
-              type=click.Path(),
-              help="where to install your application")
-def install_cli(target_dir: Path) -> None:
+@click.option(
+    "-t",
+    "--target-dir",
+    default=TARGET_DIR,
+    show_default=True,
+    type=click.Path(),
+    help="where to install your application",
+)
+def install_cli(target_dir: str) -> None:
     """
     Install Antares Web at the right file locations.
     """
@@ -65,8 +69,8 @@ def server_running_handler() -> None:
     Check whether antares service is up.
     In case it is, terminate the process
     """
-    for proc in psutil.process_iter(['pid', 'name', 'username']):
-        if 'antares' in proc.name().lower():
+    for proc in psutil.process_iter(["pid", "name", "username"]):
+        if "antares" in proc.name().lower():
             print("Cannot upgrade since the application is running.")
 
             running_app = psutil.Process(pid=proc.pid)

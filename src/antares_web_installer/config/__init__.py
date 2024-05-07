@@ -1,6 +1,7 @@
 """
 Module to update configuration files
 """
+
 from pathlib import Path
 
 import yaml

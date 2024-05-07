@@ -1,13 +1,15 @@
+import os
 import subprocess
 import textwrap
-import os
 from pathlib import Path
+from shutil import copy2, copytree, rmtree
+
 from antares_web_installer import DEBUG
-from shutil import copytree, copy2, rmtree
-from config import update_config
+
+from antares_web_installer.config import update_config
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp", }
+COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
 POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
 WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
@@ -17,12 +19,12 @@ class InstallError(Exception):
     """
     Exception that handles installation error
     """
+
     pass
 
 
 def install(src_dir: Path, target_dir: Path) -> None:
-    """
-    """
+    """ """
     # if "AntaresWeb/" directory already exists
     if target_dir.joinpath("AntaresWeb").is_dir():
         # check app version
