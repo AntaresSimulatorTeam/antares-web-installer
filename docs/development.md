@@ -115,3 +115,13 @@ hatch clean
 ```
 
 This command will remove the `dist` directory.
+
+## Building the binary distribution
+
+➢ To build the binary distribution, run:
+
+```shell
+hatch run pyinstaller:build
+```
+
+This command will run PyInstaller and generate a standalone executable in the `dist` directory.

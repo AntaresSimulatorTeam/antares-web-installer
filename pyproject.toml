@@ -75,6 +75,12 @@ build = "mkdocs build -f mkdocs.yml {args}"
 serve = "mkdocs serve -f mkdocs.yml {args}"
 gh-deploy = "mkdocs gh-deploy -f mkdocs.yml {args}"
 
+[tool.hatch.envs.pyinstaller]
+detached = true
+dependencies = ["pyinstaller"]
+
+[tool.hatch.envs.pyinstaller.scripts]
+build = "pyinstaller --name AntaresWebInstaller --onefile src/antares_web_installer/__main__.py"
 
 [tool.mypy]
 mypy_path = 'src, tests'
