@@ -1,5 +1,4 @@
 import os
-
 import click
 
 OLD_ANTARES_VERSION = os.environ.get("ANTARES_VERSION", "2.17")

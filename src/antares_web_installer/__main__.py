@@ -1,7 +1,6 @@
 """
 Main entrypoint for the CLI application.
 """
-
 import sys
 
 from antares_web_installer.cli import install_cli

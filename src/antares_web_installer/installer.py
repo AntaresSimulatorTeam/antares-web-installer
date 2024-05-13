@@ -28,7 +28,7 @@ def install(src_dir: Path, target_dir: Path) -> None:
     if target_dir.is_dir() and list(target_dir.iterdir()):
         # check app version
         version = check_version(target_dir)
-        print(f"Version actuelle de l'application : {version}")
+        print(f"Current application version : {version}")
 
         # update config file
         config_path = target_dir.joinpath("config.yaml")

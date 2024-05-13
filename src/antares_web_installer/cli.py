@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 import psutil
 
-from antares_web_installer.installer import install
+from antares_web_installer.app import App
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
@@ -45,7 +45,8 @@ def install_cli(src_dir: str, target_dir: str) -> None:
     server_running_handler()
 
     print(f"Starting installation in directory: '{target_dir}'...")
-    install(src_dir, target_dir)
+    app = App(src_dir, target_dir)
+    app.run()
     print("Done.")
 
 
