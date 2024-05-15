@@ -52,9 +52,8 @@ coverage.xml
 cover/
 
 # test data
-tests/samples/results/nt!/Program Files/
-tests/samples/results/nt/Program Files/*
-tests/samples/results/posix/opt/*
+tests/samples/results/posix/
+tests/samples/results/nt/
 
 # Translations
 *.mo

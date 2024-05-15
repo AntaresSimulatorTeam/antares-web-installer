@@ -1,10 +1,11 @@
 import os
-from pathlib import Path
-
 import click
 import psutil
 
+from pathlib import Path
+import tkinter as tk
 from antares_web_installer.app import App
+from antares_web_installer.view import Window
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
@@ -45,8 +46,12 @@ def install_cli(src_dir: str, target_dir: str) -> None:
     server_running_handler()
 
     print(f"Starting installation in directory: '{target_dir}'...")
-    app = App(src_dir, target_dir)
-    app.run()
+    # app = App(src_dir, target_dir)
+    # app.run()
+    window = Window()
+    # print("test screensize: " + str(window.winfo_screenwidth()))
+    # window.start()
+    window.mainloop()
     print("Done.")
 
 
