@@ -124,14 +124,15 @@ class Window(tk.Tk):
     """
     Root window of the application
     """
-    step_list: list = field(init=False, default=None)
+    step_list: list = field(init=False)
 
-    def __init__(self):
+    def __post_init__(self):
         super().__init__()
         self.initial_config()
 
         self.step_list = []
         self.step_list.append(HomeFrame(self))
+
 
     def initial_config(self) -> None:
         # dimension
