@@ -4,7 +4,6 @@ from .wizard_view import WizardView
 
 
 class WizardController(Controller):
-
     def init_model(self) -> Model:
         return WizardModel(self)
 

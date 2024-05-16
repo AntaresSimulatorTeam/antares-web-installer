@@ -19,7 +19,7 @@ class DialogUnit:
         return int(self.char_width * width_du), int(self.char_height * height_du)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Créer la fenêtre principale
     root = tk.Tk()
 
