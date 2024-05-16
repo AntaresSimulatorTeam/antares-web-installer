@@ -82,7 +82,12 @@ dependencies = ["pyinstaller"]
 build = "pyinstaller --name AntaresWebInstaller --onefile src/antares_web_installer/__main__.py"
 
 [tool.mypy]
-mypy_path = 'src, tests'
+mypy_path = 'src'
+exclude = [
+    # Exclude test resources
+    '^tests/config/test_config_2_15$',
+    '^tests/samples.*$',
+]
 
 [tool.coverage.run]
 source_pkgs = ["antares_web_installer", "tests"]
