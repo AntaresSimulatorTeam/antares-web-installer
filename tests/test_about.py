@@ -1,6 +1,6 @@
 import re
 
-from src.antares_web_installer.__about__ import __version__
+from antares_web_installer.__about__ import __version__
 
 
 def test_version():
