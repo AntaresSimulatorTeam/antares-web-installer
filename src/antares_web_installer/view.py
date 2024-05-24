@@ -4,7 +4,7 @@ the user interface
 """
 import tkinter as tk
 from tkinter import ttk
-from dataclasses import field, dataclass, InitVar
+from dataclasses import field, dataclass
 
 
 class View(ttk.Frame):
@@ -37,24 +37,27 @@ class AbstractContainerFrame(ttk.Frame):
     pass
 
 
+@dataclass
 class HomeFrame(AbstractContainerFrame):
     """
     """
+    window: tk.Tk
+
     style: ttk.Style = None
     header: ttk.Frame = None
     body: ttk.Frame = None
     footer: ttk.Frame = None
-    side_img: tk.PhotoImage = None
 
-    def __init__(self, window):
-        super().__init__()
+    side_img: tk.PhotoImage = field(init=False)
 
-        self.header = ttk.Frame(window)
+    def __post_init__(self):
+
+        self.header = ttk.Frame(self.window)
         self.header.grid(column=0, row=0, sticky="nsew")
         header_content = ttk.Label(self.header, text="header")
         header_content.pack(side=tk.TOP, expand=True, padx=7, pady=(7, 0), ipadx=7, ipady=7)
 
-        self.body = ttk.Frame(window)
+        self.body = ttk.Frame(self.window)
         self.body.grid(column=0, row=1, sticky="nsew", padx=7, pady=(7, 0), ipadx=7, ipady=7)
 
         body_style = ttk.Style(self.body)
@@ -66,7 +69,6 @@ class HomeFrame(AbstractContainerFrame):
         side.pack(side=tk.LEFT)
 
         self.side_img = tk.PhotoImage(file="../../docs/assets/galaxy-side-1-ratio.png")
-
         side_content = ttk.Label(side, image=self.side_img, borderwidth=2, relief="sunken")
         side_content.pack(side=tk.LEFT, expand=False)
 
@@ -77,17 +79,17 @@ class HomeFrame(AbstractContainerFrame):
         main_title = ttk.Label(main, text="Welcome to Antares Web Installer")
         main_title.pack()
 
-        main_description = ttk.Label(main, text="This wizard will guide you trhough the installation of Antares Web.")
+        main_description = ttk.Label(main, text="This wizard will guide you through the installation of Antares Web.")
         main_description.pack()
 
-        self.footer = ttk.Frame(window)
+        self.footer = ttk.Frame(self.window)
         self.footer.grid(column=0, row=2, sticky="nsew", padx=7, pady=(7, 0), ipadx=7, ipady=7)
 
         # Buttons
         buttons = dict()
 
         # Cancel
-        buttons["cancel"] = ttk.Button(master=self.footer, text="Cancel", command=window.quit)
+        buttons["cancel"] = ttk.Button(master=self.footer, text="Cancel", command=self.window.quit)
         buttons["cancel"].pack(side=tk.RIGHT, padx=(10, 20))
 
         # Next
