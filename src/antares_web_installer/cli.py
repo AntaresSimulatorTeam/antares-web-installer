@@ -46,7 +46,9 @@ SRC_DIR = "."
 )
 def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     """
-    Install Antares Web at the right file locations.
+    Install Antares Web Server sources.
+    Takes two positional argument : 'src_dir' source directory to copy files from and 'target' directory
+    to paste files to.
     """
     target_dir = Path(target_dir)
     src_dir = Path(src_dir)
