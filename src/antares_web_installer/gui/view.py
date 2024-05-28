@@ -68,7 +68,7 @@ class HomeFrame(AbstractContainerFrame):
         side = ttk.Frame(self.body, style='BodyFrame.TFrame')
         side.pack(side=tk.LEFT)
 
-        self.side_img = tk.PhotoImage(file="../../docs/assets/galaxy-side-1-ratio.png")
+        self.side_img = tk.PhotoImage(file="../../../docs/assets/galaxy-side-1-ratio.png")
         side_content = ttk.Label(side, image=self.side_img, borderwidth=2, relief="sunken")
         side_content.pack(side=tk.LEFT, expand=False)
 

@@ -1,10 +1,8 @@
 import os
 import click
-import psutil
 
 from pathlib import Path
-import tkinter as tk
-from app import App
+from antares_web_installer.app import App
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
@@ -58,8 +56,5 @@ def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     print(f"Starting installation in directory: '{target_dir}'...")
     app = App(source_dir=src_dir, target_dir=target_dir, **kwargs)
     app.run()
-
-    # window = Window()
-    # window.mainloop()
 
     print("Done.")

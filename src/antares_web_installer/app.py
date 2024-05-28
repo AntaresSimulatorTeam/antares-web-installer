@@ -11,7 +11,7 @@ from shutil import copy2, rmtree, copytree
 from pathlib import Path
 from pyshortcuts import make_shortcut
 
-from config import update_config
+from antares_web_installer.config import update_config
 
 # List of files and directories to exclude during installation
 COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
@@ -24,7 +24,6 @@ class InstallError(Exception):
     """
     Exception that handles installation error
     """
-
     pass
 
 
@@ -34,8 +33,6 @@ class App:
     target_dir: Path
     app_name: str = "AntaresWebInstaller"
     os_name: str = os.name
-    window_width: int = 640
-    window_height: int = 480
     shortcut: bool = False
     launch: bool = False
 
@@ -85,10 +82,6 @@ class App:
             # copy all files from package
             copytree(self.source_dir, self.target_dir)
 
-        # if previous steps were successfully completed, change OLD_ANTARES_VERSION environment variable
-        # debug data
-        os.environ['ANTARES_VERSION'] = "2.15"
-
     def copy_files(self):
         """
         Copy all files from self.src_dir to self.target_dir
@@ -124,9 +117,9 @@ class App:
         """
         Execute command to get the current version of the server.
         """
-        script_path = self.target_dir.joinpath("AntaresWeb/AntaresWebServer.py")
+        script_path = self.target_dir.joinpath("AntaresWeb/AntaresWebServer.py")  # FIXME
         if script_path.exists():
-            args = [sys.executable, str(script_path), "--version"]
+            args = ["python", str(script_path), "--version"]  # FIXME
         else:
             exe_path = self.target_dir.joinpath("AntaresWeb/AntaresWebServer.exe")
             # check user's os
@@ -148,26 +141,18 @@ class App:
         """
         Create a local server icon and a browser icon on desktop and
         """
-        # get Desktop path whether it is a UNIX or Windows os
-        # if self.os_name == "nt":
-        #     print("Desktop path of windows")
-        #     desktop_path = Path(f"{os.environ['USERPROFILE']}\Desktop")
-        # else:
-        #     print("Desktop path of ubuntu")
-        #     desktop_path = Path(f"/home/{os.getlogin()}/")
-
         # using pyshortcuts
         print("Create shortcuts ...")
 
         # test if it already exists
-        make_shortcut(script=str(f"{self.target_dir.joinpath('AntaresWeb/AntaresWebServer.py')} --version"),
+        make_shortcut(script=str(f"{self.target_dir.joinpath('AntaresWeb/AntaresWebServer.py')} run"),
                       name='Antares Web Server',
-                      icon='../../docs/assets/antares-web-installer-icon.ico',)
+                      icon='../../docs/assets/antares-web-installer-icon.ico',)  # TODO: edit comment and script
 
     def start_server(self):
         """
         Launch the local server as a background task
         """
-        args_server = ["fastapi", "run", str(self.target_dir.joinpath("AntaresWeb/AntaresWebServer.py"))]
-        task = subprocess.Popen(args=args_server, shell=True)
+        args_server = [f"{self.target_dir.joinpath('AntaresWeb/AntaresWebServer.py')}", "run"]
+        subprocess.Popen(args=args_server, shell=True)
         webbrowser.open(url="http://localhost:8000/", new=2)

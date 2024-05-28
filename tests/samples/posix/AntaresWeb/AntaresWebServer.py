@@ -2,14 +2,9 @@
 This script simulates the behavior of an application and return its current version.
 Support script for UNIX system
 """
-import os
 import click
-import subprocess
-
-from pathlib import Path
+import uvicorn
 from fastapi import FastAPI
-
-ANTARES_VERSION = os.environ.get("ANTARES_VERSION", "2.14")
 
 # Server part
 app = FastAPI()
@@ -17,12 +12,12 @@ app = FastAPI()
 
 @app.get("/")
 def index():
-    return {"response": f"Antares web server version : {ANTARES_VERSION}"}
+    return {"response": f"Successfully running"}
 
 
 # commands part
 @click.group()
-@click.version_option(version=ANTARES_VERSION, message="%(version)s")
+@click.version_option(version="2.15", message="%(version)s")
 def cli():
     pass
 
@@ -31,11 +26,8 @@ def cli():
 def run():
     """
     Launch Antares web server for testing only.
-    Must be in background ?
     """
-    # test/samples must be replaced by dynamically defined directory
-    script_path = Path().resolve().joinpath("tests/samples/posix/AntaresWeb/AntaresWebServer.py")
-    subprocess.run(["fastapi", "dev", script_path], shell=True)
+    uvicorn.run("AntaresWebServer:app", host="127.0.0.1", port=8000, log_level="info")
 
 
 # entry point

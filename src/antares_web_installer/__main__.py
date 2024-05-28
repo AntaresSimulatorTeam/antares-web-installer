@@ -2,8 +2,7 @@
 Main entrypoint for the CLI application.
 """
 import sys
-
-from cli import install_cli
+from antares_web_installer.cli import install_cli
 
 
 def main():
