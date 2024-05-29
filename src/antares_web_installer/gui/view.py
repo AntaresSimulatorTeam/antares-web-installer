@@ -11,6 +11,7 @@ class View(ttk.Frame):
     """
     Current view
     """
+
     pass
 
 
@@ -18,6 +19,7 @@ class AbstractStyle(ttk.Style):
     """
     Abstract style for widgets
     """
+
     pass
 
 
@@ -26,6 +28,7 @@ class AbstractWidgetFrame(ttk.Frame):
     Abstract frame that directly contains widgets
     Used by abstract container frames
     """
+
     pass
 
 
@@ -34,13 +37,14 @@ class AbstractContainerFrame(ttk.Frame):
     Abstract frame that contains other frames
     Used by main window
     """
+
     pass
 
 
 @dataclass
 class HomeFrame(AbstractContainerFrame):
-    """
-    """
+    """ """
+
     window: tk.Tk
 
     style: ttk.Style = None
@@ -51,7 +55,6 @@ class HomeFrame(AbstractContainerFrame):
     side_img: tk.PhotoImage = field(init=False)
 
     def __post_init__(self):
-
         self.header = ttk.Frame(self.window)
         self.header.grid(column=0, row=0, sticky="nsew")
         header_content = ttk.Label(self.header, text="header")
@@ -61,11 +64,11 @@ class HomeFrame(AbstractContainerFrame):
         self.body.grid(column=0, row=1, sticky="nsew", padx=7, pady=(7, 0), ipadx=7, ipady=7)
 
         body_style = ttk.Style(self.body)
-        body_style.configure('BodyFrame.TFrame', background='white')
+        body_style.configure("BodyFrame.TFrame", background="white")
 
-        self.body.configure(borderwidth=5, relief="solid", style='BodyFrame.TFrame')
+        self.body.configure(borderwidth=5, relief="solid", style="BodyFrame.TFrame")
 
-        side = ttk.Frame(self.body, style='BodyFrame.TFrame')
+        side = ttk.Frame(self.body, style="BodyFrame.TFrame")
         side.pack(side=tk.LEFT)
 
         self.side_img = tk.PhotoImage(file="../../../docs/assets/galaxy-side-1-ratio.png")
@@ -73,7 +76,7 @@ class HomeFrame(AbstractContainerFrame):
         side_content.pack(side=tk.LEFT, expand=False)
 
         # Main Frame
-        main = ttk.Frame(self.body, style='BodyFrame.TFrame')
+        main = ttk.Frame(self.body, style="BodyFrame.TFrame")
         main.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         main_title = ttk.Label(main, text="Welcome to Antares Web Installer")
@@ -126,6 +129,7 @@ class Window(tk.Tk):
     """
     Root window of the application
     """
+
     step_list: list = field(init=False)
 
     def __post_init__(self):
@@ -135,13 +139,12 @@ class Window(tk.Tk):
         self.step_list = []
         self.step_list.append(HomeFrame(self))
 
-
     def initial_config(self) -> None:
         # dimension
         width = 640
         height = 480
-        pos_x = int(self.winfo_screenwidth()/2) - int(width/2)
-        pos_y = int(self.winfo_screenheight()/2) - int(height/2)
+        pos_x = int(self.winfo_screenwidth() / 2) - int(width / 2)
+        pos_y = int(self.winfo_screenheight() / 2) - int(height / 2)
         self.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
 
         # grid configuration
@@ -154,4 +157,4 @@ class Window(tk.Tk):
         # other configs
         self.title("Antares Web Installer")
         self.resizable(False, False)
-        self.iconbitmap('../../docs/assets/antares-web-installer-icon.ico')
+        self.iconbitmap("../../docs/assets/antares-web-installer-icon.ico")

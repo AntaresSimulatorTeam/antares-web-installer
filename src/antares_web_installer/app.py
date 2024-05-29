@@ -1,14 +1,13 @@
 import dataclasses
+import logging
 import os
 import subprocess
-import sys
 import textwrap
 import webbrowser
+from pathlib import Path
+from shutil import copy2, copytree, rmtree
 
 import psutil
-
-from shutil import copy2, rmtree, copytree
-from pathlib import Path
 from pyshortcuts import make_shortcut
 
 from antares_web_installer.config import update_config
@@ -24,7 +23,6 @@ class InstallError(Exception):
     """
     Exception that handles installation error
     """
-    pass
 
 
 @dataclasses.dataclass
@@ -35,15 +33,13 @@ class App:
     os_name: str = os.name
     shortcut: bool = False
     launch: bool = False
+    logger = logging.getLogger(__name__)
 
     def run(self) -> None:
         self.kill_running_server()
         self.install_files()
         if self.shortcut:
-            print("Shortcuts was created.")
             self.create_icons()
-        else:
-            print("No shortcuts was created.")
         if self.launch:
             self.start_server()
 
@@ -53,23 +49,22 @@ class App:
         Kill the process if so.
         """
         for proc in psutil.process_iter(["pid", "name"]):
-            if 'fastapi' in proc.name():
-                print("Cannot upgrade since the application is running.")
+            if "fastapi" in proc.name():
+                self.logger.info("Cannot upgrade since the application is running.")
 
                 running_app = psutil.Process(pid=proc.pid)
                 running_app.kill()
                 running_app.wait(30)
 
-                print("The application was successfully stopped.")
+                self.logger.info("The application was successfully stopped.")
 
     def install_files(self):
-        """
-        """
+        """ """
         # if the target directory already exists and not empty
         if self.target_dir.is_dir() and list(self.target_dir.iterdir()):
             # check app version
             version = self.check_version()
-            print(f"Current application version : {version}")
+            self.logger.info(f"Current application version : {version}")
 
             # update config file
             config_path = self.target_dir.joinpath("config.yaml")
@@ -142,12 +137,16 @@ class App:
         Create a local server icon and a browser icon on desktop and
         """
         # using pyshortcuts
-        print("Create shortcuts ...")
+        self.logger.info("Create shortcuts ...")
 
         # test if it already exists
-        make_shortcut(script=str(f"{self.target_dir.joinpath('AntaresWeb/AntaresWebServer.py')} run"),
-                      name='Antares Web Server',
-                      icon='../../docs/assets/antares-web-installer-icon.ico',)  # TODO: edit comment and script
+        make_shortcut(
+            script=str(f"{self.target_dir.joinpath('AntaresWeb/AntaresWebServer.py')} run"),
+            name="Antares Web Server",
+            icon="../../docs/assets/antares-web-installer-icon.ico",
+        )  # TODO: edit comment and script
+
+        self.logger.info("Shortcuts was created.")
 
     def start_server(self):
         """

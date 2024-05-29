@@ -1,8 +1,11 @@
+import logging
 import os
+import sys
+
 import click
 
 from pathlib import Path
-from antares_web_installer.app import App
+from antares_web_installer.app import App, InstallError
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
@@ -10,6 +13,8 @@ else:
     TARGET_DIR = "C:/Program Files/AntaresWeb/"
 
 SRC_DIR = "."
+
+logger = logging.getLogger(__name__)
 
 
 @click.command()
@@ -34,13 +39,13 @@ SRC_DIR = "."
     "--shortcut/--no-shortcut",
     default=False,
     show_default=True,
-    help="Create a shortcut on desktop."
+    help="Create a shortcut on desktop.",
 )
 @click.option(
     "--launch/--no-launch",
     default=False,
     show_default=True,
-    help="Launch Antares Web Server."
+    help="Launch Antares Web Server.",
 )
 def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     """
@@ -48,13 +53,20 @@ def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     Takes two positional argument : 'src_dir' source directory to copy files from and 'target' directory
     to paste files to.
     """
-    target_dir = Path(target_dir)
+    target_dir = Path(target_dir).expanduser()
     src_dir = Path(src_dir)
 
-    target_dir = target_dir.expanduser()
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)-15s] %(message)s", stream=sys.stdout)
 
-    print(f"Starting installation in directory: '{target_dir}'...")
+    logger.info(f"Starting installation in directory: '{target_dir}'...")
     app = App(source_dir=src_dir, target_dir=target_dir, **kwargs)
-    app.run()
+    try:
+        app.run()
+    except InstallError as e:
+        logger.error(e)
+        raise SystemExit(1)
+    except KeyboardInterrupt:
+        logger.error("Installation interrupted.")
+        raise SystemExit(1)
 
-    print("Done.")
+    logger.info("Done.")

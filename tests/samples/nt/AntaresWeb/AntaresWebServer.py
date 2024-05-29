@@ -12,7 +12,7 @@ app = FastAPI()
 
 @app.get("/")
 def index():
-    return {"response": f"Successfully running"}
+    return {"response": "Successfully running"}
 
 
 # commands part
@@ -34,4 +34,3 @@ def run():
 # entry point
 if __name__ == "__main__":
     cli()
-
