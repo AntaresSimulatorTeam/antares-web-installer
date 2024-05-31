@@ -100,18 +100,13 @@ class App:
                         # the target must be deleted first
                         rmtree(self.target_dir.joinpath(elt_path.name))
 
-                        # check if the old directory is completely erased
-                        if self.target_dir.joinpath(elt_path.name).exists():
-                            raise InstallError(f"Error : Cannot update the directory {elt_path}")
-
                         # copy new directory
                         copytree(elt_path, self.target_dir.joinpath(elt_path.name))
+
                 # handle permission errors
-                except PermissionError:
-                    raise InstallError(f"Error : Cannot write in {self.target_dir}")
-                # handle other errors
-                except BaseException as e:
-                    raise InstallError(f"{e}")
+                except PermissionError as e:  # pragma: no cover
+                    relpath = elt_path.relative_to(self.source_dir).as_posix()
+                    raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
 
     def check_version(self) -> str:
         """
