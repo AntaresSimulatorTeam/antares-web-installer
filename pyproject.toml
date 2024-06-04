@@ -41,6 +41,9 @@ dependencies = [
     "coverage[toml]>=6.5",
     "pytest<8",
     "pytest-datadir",
+    "fastapi",
+    "pyinstaller",
+    "httpx",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
