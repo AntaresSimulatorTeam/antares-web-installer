@@ -37,15 +37,21 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--shortcut/--no-shortcut",
-    default=False,
+    default=True,
     show_default=True,
     help="Create a shortcut on desktop.",
 )
 @click.option(
     "--launch/--no-launch",
-    default=False,
+    default=True,
     show_default=True,
     help="Launch Antares Web Server.",
+)
+@click.option(
+    "--browser/--no-browser",
+    default=True,
+    show_default=True,
+    help="Open user's default browser at the Antares Web Server home page.",
 )
 def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     """
