@@ -52,7 +52,7 @@ coverage.xml
 cover/
 
 # test data
-tests/samples/results/not_installed/*
+tests/results/*
 
 # Translations
 *.mo

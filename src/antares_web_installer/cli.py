@@ -1,18 +1,20 @@
 import logging
 import os
 import sys
-
+from importlib import resources
 import click
 
 from pathlib import Path
 from antares_web_installer.app import App, InstallError
 
-if os.name == "posix":
-    TARGET_DIR = "/opt/antares-web/"
-else:
-    TARGET_DIR = "C:/Program Files/AntaresWeb/"
+RESOURCE_PATH = f"antares_web_installer.assets.data"
 
-SRC_DIR = "."
+with resources.path(RESOURCE_PATH, os.name) as path:
+    if os.name == "posix":
+        TARGET_DIR = "/opt/antares-web/"
+    else:
+        TARGET_DIR = "C:/Program Files/AntaresWeb/"
+    SRC_DIR = path
 
 logger = logging.getLogger(__name__)
 

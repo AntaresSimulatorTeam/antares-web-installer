@@ -10,7 +10,11 @@ import psutil
 from pathlib import Path
 from importlib import resources
 from shutil import copy2, copytree
+
 from antares_web_installer.config import update_config
+
+if os.name == 'nt':
+    from antares_web_installer.shortcuts import _win32_shell
 
 # List of files and directories to exclude during installation
 COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
@@ -50,7 +54,6 @@ class App:
             self.create_icons()
         if self.launch:
             self.start_server()
-        time.sleep(1)  # wait for the server to complete startup
         if self.browser:
             self.open_browser()
 
@@ -153,17 +156,17 @@ class App:
 
             # 2. write the default desktop entry
             with resources.path(
-                    "antares_web_installer.assets",
+                    "antares_web_installer.assets.img",
                     "antares-web-installer-logo.png") as icon_path:  # deprecated since 3.11 version
                 with open(shortcut_path, mode="w") as file:
                     content = (f"[Desktop Entry]\n"
                                f"Version=1.0\n"
                                f"Type=Application\n"
                                f"Terminal=true\n"
-                               f"Exec={str(self.target_file)}\n"
+                               f"Exec={str(self.target_file.resolve().expanduser())}\n"
                                f"Name=Antares Web Server\n"
                                f"Comment=Launch Antares web server\n"
-                               f"Icon={str(icon_path)}")
+                               f"Icon={str(icon_path.resolve().expanduser())}")
 
                     file.write(content)
 
@@ -174,9 +177,8 @@ class App:
             os.popen(f"gio set {shortcut_path} metadata::trusted true")
             self.logger.info("Shortcut is now allowed to launch the server.")
 
-            # 5. Option : add to favorite app
-            # os.popen(f"gsettings set org.gnome.shell favorite-apps \"$(gsettings get org.gnome.shell favorite-apps | "
-            #          f"sed s/.$//), f'{shortcut_name}.desktop']\"")
+            # 5. Option add to application list
+            # os.popen(f"")
 
             # 6. Option : add to path
             # alias_command = f"alias AntaresWebServer=$PATH:{self.target_dir}\nalias antareswebserver=AntaresWebServer\n"
@@ -184,8 +186,7 @@ class App:
 
         # otherwise, consider user's os is windows
         else:
-            # TODO: implement
-            pass
+            _win32_shell.create_shortcut(self.target_dir, self.target_file)
 
         # test if it already exists
         self.logger.info("Server shortcut was created.")
@@ -195,7 +196,10 @@ class App:
         Launch the local server as a background task
         """
         args = [f"{self.target_file}"]
-        server_process = subprocess.Popen(args=args, shell=True, start_new_session=True)  # works only on POSIX systems
+        server_process = subprocess.Popen(args=args, shell=True, start_new_session=True)
+        time.sleep(1.5)  # wait for the server to complete startup
+        if server_process.poll() is None:
+            self.logger.info(f"Server was started successfully.")
 
     def open_browser(self):
         """
