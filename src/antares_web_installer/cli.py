@@ -7,7 +7,7 @@ import click
 from pathlib import Path
 from antares_web_installer.app import App, InstallError
 
-RESOURCE_PATH = f"antares_web_installer.assets.data"
+RESOURCE_PATH = "antares_web_installer.assets.data"
 
 with resources.path(RESOURCE_PATH, os.name) as path:
     if os.name == "posix":

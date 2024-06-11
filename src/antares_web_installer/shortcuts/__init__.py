@@ -40,7 +40,7 @@ def create_shortcut(
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(f"{get_homedir()=}")
     print(f"{get_desktop()=}")
     print(f"{get_start_menu()=}")

@@ -58,13 +58,14 @@ def get_start_menu() -> str:
 
 
 def create_shortcut(
-        target: t.Union[str, os.PathLike],
-        exe_path: t.Union[str, os.PathLike],
-        *,
-        arguments: t.Union[str, t.Sequence[str]] = "",
-        working_dir: t.Union[str, os.PathLike] = "",
-        icon_path: t.Union[str, os.PathLike] = "",
-        description: str = "",
-) -> None: ...
+    target: t.Union[str, os.PathLike],
+    exe_path: t.Union[str, os.PathLike],
+    *,
+    arguments: t.Union[str, t.Sequence[str]] = "",
+    working_dir: t.Union[str, os.PathLike] = "",
+    icon_path: t.Union[str, os.PathLike] = "",
+    description: str = "",
+) -> None:
+    ...
     # fixme: implement this function
     # raise NotImplementedError("TODO: create_shortcut")
