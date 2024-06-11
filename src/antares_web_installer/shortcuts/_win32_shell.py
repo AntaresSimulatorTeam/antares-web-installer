@@ -1,3 +1,6 @@
+"""
+TODO : script file description, comments, logs,
+"""
 import os
 import typing as t
 from shlex import quote
@@ -9,6 +12,10 @@ _WSHELL = win32com.client.Dispatch("Wscript.Shell")
 
 # Windows Special Folders
 # see: https://docs.microsoft.com/en-us/windows/win32/shell/csidl
+
+
+class ShortcutCreationError(Exception):
+    pass
 
 
 def get_homedir() -> str:
@@ -47,11 +54,17 @@ def create_shortcut(
     else:
         arguments = [quote(arg) for arg in arguments]
 
-    wscript = _WSHELL.CreateShortCut(str(target))
-    wscript.Targetpath = quote(str(exe_path))
-    wscript.Arguments = " ".join(arguments)
-    wscript.WorkingDirectory = quote(str(working_dir))
-    wscript.WindowStyle = 0
-    wscript.Description = description or None
-    wscript.IconLocation = quote(str(icon_path)) if icon_path else None
-    wscript.save()
+    try:
+        wscript = _WSHELL.CreateShortCut(get_desktop() + f"\\{target}")
+        # quote() is only designed for Unix shells. See https://docs.python.org/3/library/shlex.html#shlex.quote
+        wscript.TargetPath = str(exe_path)
+        wscript.Arguments = " ".join(arguments)
+        wscript.WorkingDirectory = str(working_dir)
+        wscript.WindowStyle = 0
+        wscript.Description = description or None
+        wscript.IconLocation = str(icon_path) if icon_path else None
+        wscript.save()
+    except TypeError as e:
+        raise ShortcutCreationError(f"Unsupported type for shortcut configuration: {e}") from e
+    except AttributeError as e:
+        raise ShortcutCreationError(f"Unknown attribute: {e}") from e

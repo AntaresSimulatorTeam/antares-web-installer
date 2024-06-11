@@ -186,7 +186,12 @@ class App:
 
         # otherwise, consider user's os is windows
         else:
-            _win32_shell.create_shortcut(self.target_dir, self.target_file)
+            with resources.path("antares_web_installer.assets.img",
+                    "antares-web-installer-logo.ico") as icon_path:
+                _win32_shell.create_shortcut(target="Antares Web Server.lnk",
+                                             exe_path=self.target_file,
+                                             icon_path=icon_path,
+                                             description="Launch Antares Web server")
 
         # test if it already exists
         self.logger.info("Server shortcut was created.")
