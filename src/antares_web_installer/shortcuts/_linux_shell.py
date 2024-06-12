@@ -4,7 +4,7 @@ TODO: script file description, comments, add my code
 import functools
 import os
 import typing as t
-
+from pyshortcuts.linux import DESKTOP_FORM
 
 @functools.lru_cache(maxsize=1)
 def get_homedir() -> str:
@@ -69,6 +69,19 @@ def create_shortcut(
     icon_path: t.Union[str, os.PathLike] = "",
     description: str = "",
 ) -> None:
-    ...
-    # fixme: implement this function
-    # raise NotImplementedError("TODO: create_shortcut")
+    # create the formatted content of the .desktop file
+    shortcut_content = DESKTOP_FORM.format(
+        name="Antares Web Server",
+        desc=str(description) if description else "",
+        workdir=str(working_dir) if working_dir else "",
+        term="true",
+        icon=str(icon_path) if icon_path else "",
+        execstring=f"{str(exe_path)} {''.join(arguments)}"
+    )
+
+    # generate shortcuts in both desktop and start menu
+    for folder in (get_desktop(), get_start_menu()):
+        dest = os.path.join(folder, os.path.basename(target))
+        with open(dest, 'w') as file:
+            file.write(shortcut_content)
+        os.chmod(dest, 493)  # = octal 755 / rwxr-xr-x

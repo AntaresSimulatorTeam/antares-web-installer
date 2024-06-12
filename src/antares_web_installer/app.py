@@ -151,7 +151,8 @@ class App:
         # if the shortcut already exists, remove it
         shortcut_path.unlink(missing_ok=True)
 
-        # create a new shortcut
+        # shortcut generation
+        logging.info("Generating server shortcut...")
         create_shortcut(
             shortcut_path,
             exe_path=self.server_path,
@@ -159,54 +160,7 @@ class App:
             description="Launch Antares Web Server in background",
         )
 
-        # # if user's os is linux
-        # if self.os_name.lower() == "posix":
-        #     logger.info("Unix os detected.")
-        #
-        #     # 1. create a .desktop
-        #     desktop_path = os.popen("xdg-user-dir DESKTOP").read().rstrip("\n")
-        #     shortcut_name = "AntaresWebServer.desktop"
-        #     shortcut_path = desktop_path + "/" + shortcut_name
-        #     os.popen(f"touch {shortcut_path}")
-        #
-        #     # 2. write the default desktop entry
-        #     with resources.path(
-        #         "antares_web_installer.assets.img", "antares-web-installer-logo.png"
-        #     ) as icon_path:  # deprecated since 3.11 version
-        #         with open(shortcut_path, mode="w") as file:
-        #             content = (
-        #                 f"[Desktop Entry]\n"
-        #                 f"Version=1.0\n"
-        #                 f"Type=Application\n"
-        #                 f"Terminal=true\n"
-        #                 f"Exec={str(self.target_file.resolve().expanduser())}\n"
-        #                 f"Name=Antares Web Server\n"
-        #                 f"Comment=Launch Antares web server\n"
-        #                 f"Icon={str(icon_path.resolve().expanduser())}"
-        #             )
-        #
-        #             file.write(content)
-        #
-        #     # 4. activate allow launching option
-        #     os.popen(f"chmod u+x {shortcut_path}")
-        #     logger.info("Execution rights were updated")
-        #
-        #     os.popen(f"gio set {shortcut_path} metadata::trusted true")
-        #     logger.info("Shortcut is now allowed to launch the server.")
-        #
-        #     # 5. Option add to application list
-        #     # os.popen(f"")
-        #
-        #     # 6. Option : add to path
-        #     # alias_command = f"alias AntaresWebServer=$PATH:{self.target_dir}\nalias antareswebserver=AntaresWebServer\n"
-        #     # os.popen(f"echo  '{alias_command}' >> {shortcut_path}")
-        #
-        # # otherwise, consider user's os is windows
-        # else:
-        #     _win32_shell.create_shortcut(self.target_dir, self.target_file)
-
-        # test if it already exists
-        logger.info("Server shortcut was created.")
+        logger.info("Server shortcut successfully created.")
 
     def start_server(self):
         """
