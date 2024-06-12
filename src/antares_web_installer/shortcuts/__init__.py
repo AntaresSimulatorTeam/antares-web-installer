@@ -3,6 +3,7 @@ import importlib
 import os
 import sys
 
+
 _PKG = "antares_web_installer.shortcuts"
 
 # https://stackoverflow.com/a/13874620/1513933

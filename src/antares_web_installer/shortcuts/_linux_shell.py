@@ -76,7 +76,7 @@ def create_shortcut(
         workdir=str(working_dir) if working_dir else "",
         term="true",
         icon=str(icon_path) if icon_path else "",
-        execstring=f"{str(exe_path)} {''.join(arguments)}"
+        execstring=f"{str(os.path.abspath(exe_path))} {''.join(arguments)}"
     )
 
     # generate shortcuts in both desktop and start menu
