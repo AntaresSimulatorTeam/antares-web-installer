@@ -6,7 +6,7 @@ import sys
 _PKG = "antares_web_installer.shortcuts"
 
 # https://stackoverflow.com/a/13874620/1513933
-_shell_module = importlib.import_module(f"_{sys.platform}_shell", _PKG)
+_shell_module = importlib.import_module(f"{_PKG}._{sys.platform}_shell")
 
 
 def get_homedir() -> str:
