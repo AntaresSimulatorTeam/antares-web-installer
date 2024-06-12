@@ -3,7 +3,7 @@ TODO : script file description, comments, logs,
 """
 import os
 import typing as t
-from shlex import quote
+import pywintypes
 
 import win32com.client
 from win32com.shell import shell, shellcon
@@ -50,21 +50,22 @@ def create_shortcut(
     working_dir = working_dir or get_homedir()
 
     if isinstance(arguments, str):
-        arguments = [quote(arguments)] if arguments else []
+        arguments = [arguments] if arguments else []
     else:
-        arguments = [quote(arg) for arg in arguments]
+        arguments = [arg for arg in arguments]
 
     try:
-        wscript = _WSHELL.CreateShortCut(get_desktop() + f"\\{target}")
-        # quote() is only designed for Unix shells. See https://docs.python.org/3/library/shlex.html#shlex.quote
+        wscript = _WSHELL.CreateShortCut(str(target))
         wscript.TargetPath = str(exe_path)
         wscript.Arguments = " ".join(arguments)
         wscript.WorkingDirectory = str(working_dir)
         wscript.WindowStyle = 0
-        wscript.Description = description or None
-        wscript.IconLocation = str(icon_path) if icon_path else None
+        wscript.Description = str(description) if description else "null"
+        wscript.IconLocation = str(exe_path) or "null"
         wscript.save()
     except TypeError as e:
         raise ShortcutCreationError(f"Unsupported type for shortcut configuration: {e}") from e
     except AttributeError as e:
         raise ShortcutCreationError(f"Unknown attribute: {e}") from e
+    except pywintypes.com_error as e:
+        raise ShortcutCreationError(f"An error occured while saving shortcut: {e}") from e
