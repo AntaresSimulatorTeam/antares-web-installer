@@ -2,6 +2,7 @@
 views that manage window, frames and other visual components for
 the user interface
 """
+
 import tkinter as tk
 from tkinter import ttk
 from dataclasses import field, dataclass

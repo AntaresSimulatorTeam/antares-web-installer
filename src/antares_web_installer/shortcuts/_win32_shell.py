@@ -1,6 +1,7 @@
 """
 TODO : script file description, comments, logs,
 """
+
 import os
 import typing as t
 import pywintypes

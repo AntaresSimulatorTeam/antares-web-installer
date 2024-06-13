@@ -2,6 +2,7 @@
 This script simulates the behavior of an application and return its current version.
 Support script for Windows systems
 """
+
 import sys
 import uvicorn
 
