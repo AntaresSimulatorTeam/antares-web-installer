@@ -94,7 +94,7 @@ class App:
 
         else:
             # copy all files from package
-            copytree(self.source_dir, self.target_dir)
+            copytree(self.source_dir, self.target_dir, dirs_exist_ok=True)
 
     def copy_files(self):
         """

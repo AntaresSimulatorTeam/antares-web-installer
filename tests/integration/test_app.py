@@ -69,8 +69,8 @@ class TestApp:
         - The server is correctly started
         """
         # Patch the `get_desktop` function according to the current platform
-        platform = {"nt": "windows", "posix": "linux", "darwin": "darwin"}[os.name]
-        monkeypatch.setattr(f"pyshortcuts.{platform}.get_desktop", lambda: desktop_dir)
+        platform = {"nt": "_win32_shell", "posix": "_linux_shell"}[os.name]
+        monkeypatch.setattr(f"antares_web_installer.shortcuts.{platform}.get_desktop", lambda: desktop_dir)
 
         # Run the application
         app = App(source_dir=downloaded_dir, target_dir=program_dir, shortcut=True, launch=True)
