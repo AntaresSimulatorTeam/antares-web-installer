@@ -1,10 +1,16 @@
 """
-TODO : script file description, comments, logs,
+This module allows to create shortcuts on Windows using the `win32com.shell.shell` module.
+
+It must present the same interface as the `antares_web_installer.shortcuts` module:
+
+- `get_homedir()`: Return the path to the user's home directory.
+- `get_desktop()`: Return the path to the user's desktop directory.
+- `get_start_menu()`: Return the path to the user's start menu directory.
+- `create_shortcut()`: Creates a shortcut to an executable.
 """
 
 import os
 import typing as t
-import pywintypes
 
 import win32com.client
 from win32com.shell import shell, shellcon
@@ -13,10 +19,6 @@ _WSHELL = win32com.client.Dispatch("Wscript.Shell")
 
 # Windows Special Folders
 # see: https://docs.microsoft.com/en-us/windows/win32/shell/csidl
-
-
-class ShortcutCreationError(Exception):
-    pass
 
 
 def get_homedir() -> str:
@@ -52,21 +54,14 @@ def create_shortcut(
 
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
-    else:
-        arguments = [arg for arg in arguments]
 
-    try:
-        wscript = _WSHELL.CreateShortCut(str(target))
-        wscript.TargetPath = str(exe_path)
-        wscript.Arguments = " ".join(arguments)
-        wscript.WorkingDirectory = str(working_dir)
-        wscript.WindowStyle = 0
-        wscript.Description = str(description) if description else "$null"
-        wscript.IconLocation = str(exe_path) if exe_path else "$null"
-        wscript.save()
-    except TypeError as e:
-        raise ShortcutCreationError(f"Unsupported field type for shortcut configuration: {e}") from e
-    except AttributeError as e:
-        raise ShortcutCreationError(f"Unknown attribute: {e}") from e
-    except pywintypes.com_error as e:
-        raise ShortcutCreationError(f"An error occurred while saving shortcut: {e}") from e
+    wscript = _WSHELL.CreateShortCut(str(target))
+    wscript.TargetPath = str(exe_path)
+    wscript.Arguments = " ".join(arguments)
+    wscript.WorkingDirectory = str(working_dir)
+    wscript.WindowStyle = 0
+    if description:
+        wscript.Description = description
+    if icon_path:
+        wscript.IconLocation = str(icon_path)
+    wscript.save()

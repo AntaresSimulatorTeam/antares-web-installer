@@ -1,11 +1,11 @@
 import logging
 import os
 import sys
+from pathlib import Path
+
 import click
 
-from pathlib import Path
 from antares_web_installer.app import App, InstallError
-
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
@@ -68,6 +68,7 @@ def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
     try:
         app.run()
     except InstallError as e:
+        # Display only the error message without traceback
         logger.error(e)
         raise SystemExit(1)
     except KeyboardInterrupt:
