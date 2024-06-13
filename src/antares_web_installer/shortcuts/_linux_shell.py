@@ -1,11 +1,29 @@
 """
-TODO: script file description, comments, add my code
+This module allows to create shortcuts on Linux using the `.desktop` file format.
+
+It must present the same interface as the `antares_web_installer.shortcuts` module:
+
+- `get_homedir()`: Return the path to the user's home directory.
+- `get_desktop()`: Return the path to the user's desktop directory.
+- `get_start_menu()`: Return the path to the user's start menu directory.
+- `create_shortcut()`: Creates a shortcut to an executable.
 """
 
 import functools
 import os
 import typing as t
-from pyshortcuts.linux import DESKTOP_FORM
+from pathlib import Path
+
+DESKTOP_FORM = """\
+[Desktop Entry]
+Name={name}
+Type=Application
+Path={workdir}
+Comment={desc}
+Terminal={term}
+Icon={icon}
+Exec={execstring}
+"""
 
 
 @functools.lru_cache(maxsize=1)
@@ -16,15 +34,13 @@ def get_homedir() -> str:
     sudo_user = os.environ.get("SUDO_USER", "")
     if sudo_user:
         try:
-            from pwd import getpwnam
+            import pwd
 
-            home = getpwnam(sudo_user).pw_dir
+            home = pwd.getpwnam(sudo_user).pw_dir
         except ImportError:
             pass
     if not home:
         try:
-            from pathlib import Path
-
             home = str(Path.home())
         except IOError:
             pass
@@ -81,9 +97,7 @@ def create_shortcut(
         execstring=f"{str(os.path.abspath(exe_path))} {''.join(arguments)}",
     )
 
-    # generate shortcuts in both desktop and start menu
-    for folder in (get_desktop(), get_start_menu()):
-        dest = os.path.join(folder, os.path.basename(target))
-        with open(dest, "w") as file:
-            file.write(shortcut_content)
-        os.chmod(dest, 493)  # = octal 755 / rwxr-xr-x
+    with open(target, mode="w") as file:
+        file.write(shortcut_content)
+
+    os.chmod(target, 0o755)

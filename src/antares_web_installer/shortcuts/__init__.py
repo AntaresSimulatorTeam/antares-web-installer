@@ -59,15 +59,3 @@ def create_shortcut(
         icon_path=icon_path,
         description=description,
     )
-
-
-if __name__ == "__main__":
-    print(f"{get_homedir()=}")
-    print(f"{get_desktop()=}")
-    print(f"{get_start_menu()=}")
-    create_shortcut(
-        "/home/laportelau/opt/antares-8.2.3-Ubuntu-20.04/bin/antares-8.2-solver",
-        get_desktop() + "/antares-8.2-solver.desktop",
-        working_dir="/home/laportelau/opt/antares-8.2.3-Ubuntu-20.04/bin/",
-        description="Lancement d'Antares Solver",
-    )
