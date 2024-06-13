@@ -115,8 +115,9 @@ class App:
                         copytree(elt_path, self.target_dir.joinpath(elt_path.name), dirs_exist_ok=True)
 
                 # handle permission errors
-                except PermissionError as e:
-                    raise InstallError(f"Error : Cannot write in {self.target_dir}:") from e
+                except PermissionError as e:  # pragma: no cover
+                    relpath = elt_path.relative_to(self.source_dir).as_posix()
+                    raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
 
     def check_version(self) -> str:
         """

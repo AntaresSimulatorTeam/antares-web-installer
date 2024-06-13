@@ -61,12 +61,12 @@ def create_shortcut(
         wscript.Arguments = " ".join(arguments)
         wscript.WorkingDirectory = str(working_dir)
         wscript.WindowStyle = 0
-        wscript.Description = str(description) if description else "null"
-        wscript.IconLocation = str(exe_path) or "null"
+        wscript.Description = str(description) if description else "$null"
+        wscript.IconLocation = str(exe_path) if exe_path else "$null"
         wscript.save()
     except TypeError as e:
-        raise ShortcutCreationError(f"Unsupported type for shortcut configuration: {e}") from e
+        raise ShortcutCreationError(f"Unsupported field type for shortcut configuration: {e}") from e
     except AttributeError as e:
         raise ShortcutCreationError(f"Unknown attribute: {e}") from e
     except pywintypes.com_error as e:
-        raise ShortcutCreationError(f"An error occured while saving shortcut: {e}") from e
+        raise ShortcutCreationError(f"An error occurred while saving shortcut: {e}") from e
