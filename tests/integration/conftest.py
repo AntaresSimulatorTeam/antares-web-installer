@@ -4,7 +4,6 @@ import subprocess
 import time
 from pathlib import Path
 
-import httpx  # type: ignore
 import pytest
 
 from tests.integration.server_mock.builder import build
