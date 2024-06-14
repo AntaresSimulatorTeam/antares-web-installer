@@ -88,7 +88,7 @@ gh-deploy = "mkdocs gh-deploy -f mkdocs.yml {args}"
 dependencies = ["pyinstaller"]
 
 [tool.hatch.envs.pyinstaller.scripts]
-build = "pyinstaller --name AntaresWebInstaller --onefile ../src/antares_web_installer/__main__.py --hidden-import antares_web_installer.shortcuts._linux_shell --hidden-import antares_web_installer.shortcuts._win32_shell"
+build = "pyinstaller --name AntaresWebInstaller --onefile src/antares_web_installer/__main__.py --hidden-import antares_web_installer.shortcuts._linux_shell --hidden-import antares_web_installer.shortcuts._win32_shell"
 
 [tool.mypy]
 mypy_path = 'src'
