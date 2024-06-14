@@ -3,6 +3,7 @@ import socket
 import subprocess
 import time
 from pathlib import Path
+import typing as t
 
 import pytest
 
@@ -48,7 +49,7 @@ def ping(host: str, port: int, timeout: float = 2) -> bool:
 
 
 @pytest.fixture(name="antares_web_server")
-def antares_web_server_fixture(antares_web_server_path: Path) -> subprocess.Popen:
+def antares_web_server_fixture(antares_web_server_path: Path) -> t.Generator[subprocess.Popen, None, None]:
     """Fixture used to provide a running instance of the Antares web server."""
     # Spawn the server process
     server = subprocess.Popen(

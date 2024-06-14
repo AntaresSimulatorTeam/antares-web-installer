@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+import typing as t
 
 import click
 
@@ -52,7 +53,7 @@ logger = logging.getLogger(__name__)
     show_default=True,
     help="Open user's default browser at the Antares Web Server home page.",
 )
-def install_cli(src_dir: str, target_dir: str, **kwargs) -> None:
+def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **kwargs) -> None:
     """
     Install Antares Web Server sources.
     Takes two positional argument : 'src_dir' source directory to copy files from and 'target' directory

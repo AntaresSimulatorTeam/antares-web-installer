@@ -26,10 +26,10 @@ classifiers = [
 ]
 
 dependencies = [
-    'click',
-    'psutil',
-    'pyyaml',
-    'pywin32; sys_platform == "win32"',
+    'click<8.2',
+    'psutil<5.10',
+    'pyyaml<6.1',
+    'pywin32<=306; sys_platform == "win32"',
 ]
 
 [project.urls]
@@ -70,6 +70,7 @@ python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 dependencies = [
     "pytest<8",
     "mypy>=1.0.0",
+    "fastapi",
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/antares_web_installer tests}"
