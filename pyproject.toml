@@ -25,7 +25,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dependencies = ['click', 'psutil', 'pyyaml', 'pyshortcuts', 'pywin32']
+dependencies = [
+    'click',
+    'psutil',
+    'pyyaml',
+    'pywin32; sys_platform == "win32"',
+]
 
 [project.urls]
 Documentation = "https://github.com/AntaresSimulatorTeam/antares-web-installer#readme"
