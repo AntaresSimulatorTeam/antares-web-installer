@@ -14,8 +14,8 @@ l'interface web.
 
 L'application `antares-web-installer` existe en deux déclinaisons :
 
-- une version simplifiée en ligne de commande (CLI) : `AntaresWebInstallerCli.exe`
-- une version graphique (GUI) intuitive : `AntaresWebInstallerGUI.exe`
+- une version simplifiée en ligne de commande (CLI) : `AntaresWebInstaller.exe`
+- une version graphique (GUI) intuitive : `AntaresWebInstaller.exe`
 
 L'application est disponible pour Windows et Ubuntu.
 
@@ -29,7 +29,7 @@ The installer can, on request, add shortcuts to the desktop to launch the server
 
 The `antares-web-installer` application exists in two versions:
 
-- a simplified command line version (CLI): `AntaresWebInstallerCli.exe`
-- an intuitive graphical version (GUI): `AntaresWebInstallerGUI.exe`
+- a simplified command line version (CLI): `AntaresWebInstaller.exe`
+- an intuitive graphical version (GUI): `AntaresWebInstaller.exe`
 
 The application is available for Windows and Ubuntu.

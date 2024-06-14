@@ -5,7 +5,7 @@
 Open a new terminal and run the following command:
 
 ```shell
-AntaresWebInstallerCli.exe <TARGET_DIR>
+AntaresWebInstaller.exe -t <TARGET_DIR>
 ```
 
 where `<TARGET_DIR>` is the directory where you want to install the Antares Web Desktop.
@@ -17,4 +17,4 @@ end of the installation with '-l'.
 
 ## Graphical version (GUI)
 
-Double-click on the `AntaresWebInstallerGUI.exe` file and follow the instructions.
+Double-click on the `AntaresWebInstaller.exe` file and follow the instructions.
