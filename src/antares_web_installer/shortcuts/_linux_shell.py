@@ -36,7 +36,7 @@ def get_homedir() -> str:
         try:
             import pwd
 
-            home = pwd.getpwnam(sudo_user).pw_dir
+            home = pwd.getpwnam(sudo_user).pw_dir  # type: ignore
         except ImportError:
             pass
     if not home:
