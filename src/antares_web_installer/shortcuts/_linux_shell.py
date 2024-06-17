@@ -100,4 +100,8 @@ def create_shortcut(
     with open(target, mode="w") as file:
         file.write(shortcut_content)
 
+    # grant execution rights
     os.chmod(target, 0o755)
+
+    # mark file as trusted
+    os.system(f"gio set {target} metadata::trusted true")

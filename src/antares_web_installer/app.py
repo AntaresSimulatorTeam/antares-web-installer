@@ -168,7 +168,7 @@ class App:
         Launch the local server as a background task
         """
         args = [str(self.server_path)]
-        server_process = subprocess.Popen(args=args, start_new_session=True)
+        server_process = subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
         time.sleep(1.5)  # wait for the server to complete startup
         if server_process.poll() is None:
             logger.info("Server was started successfully.")
