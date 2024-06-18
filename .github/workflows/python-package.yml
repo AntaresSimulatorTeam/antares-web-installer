@@ -44,13 +44,11 @@ jobs:
 
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'
-        run: hatch run pyinstaller:build AntaresWebInstaller.exe
-        working-directory: dist/
+        run: hatch run pyinstaller:build
 
       - name: Build Ubuntu Installer
         if: matrix.os == 'ubuntu-20.04'
-        run: hatch run pyinstaller:build AntaresWebInstaller
-        working-directory: dist/
+        run: hatch run pyinstaller:build
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4

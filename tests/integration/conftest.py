@@ -73,7 +73,7 @@ def antares_web_server_fixture(antares_web_server_path: Path) -> t.Generator[sub
         # Wait for the server to be ready
         timeout_time = time.time() + SERVER_TIMEOUT
         while time.time() < timeout_time:
-            if ping("localhost", 8000, timeout=0.1):
+            if ping("localhost", 8080, timeout=0.1):
                 break
             time.sleep(0.1)
         else:
