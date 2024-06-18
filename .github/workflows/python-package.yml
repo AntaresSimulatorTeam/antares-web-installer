@@ -42,16 +42,12 @@ jobs:
       - name: Check typing with mypy
         run: hatch run types:check
 
-      - name: Build Windows Installer
+      - name: Build Installer
         if: matrix.os == 'windows-latest'
-        run: hatch run pyinstaller:build
-
-      - name: Build Ubuntu Installer
-        if: matrix.os == 'ubuntu-20.04'
-        run: hatch run pyinstaller:build
+        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}
-          path: dist/AntaresWebInstaller.zip
+          path: dist/AntaresWebInstaller-${{ matrix.os }}
