@@ -41,3 +41,19 @@ jobs:
 
       - name: Check typing with mypy
         run: hatch run types:check
+
+      - name: Build Windows Installer
+        if: matrix.os == 'windows-latest'
+        run: hatch run pyinstaller:build AntaresWebInstaller.exe
+        working-directory: dist/
+
+      - name: Build Ubuntu Installer
+        if: matrix.os == 'ubuntu-20.04'
+        run: hatch run pyinstaller:build AntaresWebInstaller
+        working-directory: dist/
+
+      - name: Upload binaries
+        uses: action/upload-artifact@v4
+        with:
+          name: AntaresWebInstaller-${{ matrix.os }}
+          path: dist/AntaresWebInstaller.zip

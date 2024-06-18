@@ -1,6 +1,7 @@
 import dataclasses
 import logging
 import os
+import re
 import subprocess
 import textwrap
 import time
@@ -87,10 +88,11 @@ class App:
             # update config file
             config_path = self.target_dir.joinpath("config.yaml")
             update_config(config_path, config_path, version)
-            logger.info(f"New application version : {version}.")
-
             # copy binaries
             self.copy_files()
+
+            version = self.check_version()
+            logger.info(f"New application version : {version}.")
 
         else:
             # copy all files from package
@@ -104,6 +106,9 @@ class App:
         write or if self.target_dir already exists.
         """
         for elt_path in self.source_dir.iterdir():
+            if elt_path.is_dir():
+                os.mkdir(self.target_dir.joinpath(elt_path.name))
+                logger.info(f"{elt_path.name} directory created.")
             if elt_path.name not in EXCLUDED_FILES:
                 try:
                     if elt_path.is_file():
@@ -134,6 +139,9 @@ class App:
         except subprocess.CalledProcessError as e:
             reason = textwrap.indent(e.stderr, "  | ", predicate=lambda line: True)
             raise InstallError(f"Can't check version:\n{reason}") from e
+
+        # ensure the version number is in the form 'x.x' or 'x.x.x'
+        version = re.match(r"^(\d(.\d)+)+", version).group()
 
         logger.info("Version found.")
         return version
