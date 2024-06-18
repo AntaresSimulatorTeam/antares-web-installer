@@ -138,7 +138,12 @@ class App:
             raise InstallError(f"Can't check version:\n{reason}") from e
 
         # ensure the version number is in the form 'x.x' or 'x.x.x'
-        version = re.match(r"^(\d(.\d)+)+", version).group()
+        matched_value = re.match(r"^(\d(.\d)+)+", version)
+
+        if not matched_value:
+            raise InstallError("No version found.")
+
+        version = matched_value.group()
 
         logger.info("Version found.")
         return version
