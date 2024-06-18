@@ -106,9 +106,6 @@ class App:
         write or if self.target_dir already exists.
         """
         for elt_path in self.source_dir.iterdir():
-            if elt_path.is_dir():
-                os.mkdir(self.target_dir.joinpath(elt_path.name))
-                logger.info(f"{elt_path.name} directory created.")
             if elt_path.name not in EXCLUDED_FILES:
                 try:
                     if elt_path.is_file():
@@ -177,7 +174,7 @@ class App:
         """
         args = [str(self.server_path)]
         server_process = subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
-        time.sleep(1.5)  # wait for the server to complete startup
+        time.sleep(2)  # wait for the server to complete startup
         if server_process.poll() is None:
             logger.info("Server was started successfully.")
 
