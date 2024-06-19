@@ -47,6 +47,7 @@ jobs:
         run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
 
       - name: Upload binaries
+        if: ${{ matrix.python-version == '3.8' }}
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}

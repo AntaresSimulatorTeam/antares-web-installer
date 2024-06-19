@@ -21,11 +21,12 @@ def downloaded_dir_fixture(antares_web_server_path, tmp_path: Path) -> Path:
     downloaded_dir.mkdir(parents=True)
 
     # Copy sample data
-    sample_dir = SAMPLES_DIR.joinpath(os.name)
+    sample_dir = SAMPLES_DIR.joinpath(os.name, "AntaresWeb-2.15.2")
     shutil.copytree(sample_dir, downloaded_dir, dirs_exist_ok=True)
 
-    # The sample directory may contain an extra script which must be removed
-    downloaded_dir.joinpath("AntaresWeb/AntaresWebServer.py").unlink(missing_ok=True)
+    # The sample directory may contain an extra scripts that must be removed
+    downloaded_dir.joinpath("AntaresWeb/cli.py").unlink(missing_ok=True)
+    downloaded_dir.joinpath("AntaresWeb/server.py").unlink(missing_ok=True)
 
     # Patch the `AntaresWeb/AntaresWebServer.exe` file
     shutil.copy2(antares_web_server_path, downloaded_dir.joinpath("AntaresWeb"))
