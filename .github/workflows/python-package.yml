@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.8", "3.12" ]
-        os: [ windows-latest, ubuntu-20.04 ]
+        os: [ windows-latest, ubuntu-20.04, ubuntu-22.04 ]
 
     steps:
       - uses: actions/checkout@v4
@@ -43,12 +43,13 @@ jobs:
         run: hatch run types:check
 
       - name: Build Installer
-        if: ${{ matrix.python-version == '3.8' }}
-        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
+        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Upload binaries
-        if: ${{ matrix.python-version == '3.8' }}
+        env:
+          if: matrix.os == 'windows-latest'
+          suffix: '.exe'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}
-          path: dist/AntaresWebInstaller-${{ matrix.os }}
+          name: AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}${{ suffix }}
+          path: dist/AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}
