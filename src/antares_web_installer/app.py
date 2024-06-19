@@ -66,7 +66,7 @@ class App:
         Kill the process if so.
         """
         for proc in psutil.process_iter(["pid", "name"]):
-            if 'antareswebserve' in proc.name().lower():
+            if "antareswebserve" in proc.name().lower():
                 logger.info(f"Running server '{proc.name()}' (pid={proc.pid}) found. Attempt to stop it.")
 
                 running_app = psutil.Process(pid=proc.pid)
@@ -172,9 +172,11 @@ class App:
         shortcut_path.unlink(missing_ok=True)
 
         # shortcut generation
-        logger.info(f"Shortcut will be created in {shortcut_path}, "
-                    f"linked to '{self.server_path}' "
-                    f"and located in '{self.target_dir}' directory.")
+        logger.info(
+            f"Shortcut will be created in {shortcut_path}, "
+            f"linked to '{self.server_path}' "
+            f"and located in '{self.target_dir}' directory."
+        )
         create_shortcut(
             shortcut_path,
             exe_path=self.server_path,
