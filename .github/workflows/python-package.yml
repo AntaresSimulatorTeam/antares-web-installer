@@ -53,7 +53,7 @@ jobs:
           path: dist/AntaresWebInstaller-${{ matrix.os }}.exe
 
       - name: Upload Ubuntu binaries
-        if: matrix.python-version == '3.8' && !matrix.os == 'windows-latest'
+        if: matrix.python-version == '3.8' && matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}
