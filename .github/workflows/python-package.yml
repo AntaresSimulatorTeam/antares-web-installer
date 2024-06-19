@@ -43,17 +43,17 @@ jobs:
         run: hatch run types:check
 
       - name: Build Installer
-        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}
+        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
 
       - name: Upload Windows binaries
-        if: matrix.os == 'windows-latest'
+        if: matrix.python-version == '3.8' && matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}.exe
-          path: dist/AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}
+          name: AntaresWebInstaller-${{ matrix.os }}
+          path: dist/AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}.exe
 
       - name: Upload Ubuntu binaries
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-22.04'
+        if: matrix.python-version == '3.8' && (matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-22.04')
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}-${{ matrix.python-version }}
