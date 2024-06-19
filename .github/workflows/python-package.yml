@@ -49,12 +49,12 @@ jobs:
         if: matrix.python-version == '3.8' && matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}.zip
-          path: dist/AntaresWebInstaller-${{ matrix.os }}
+          name: AntaresWebInstaller-${{ matrix.os }}
+          path: dist/AntaresWebInstaller-${{ matrix.os }}.exe
 
       - name: Upload Ubuntu binaries
         if: matrix.python-version == '3.8' && matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}.zip
+          name: AntaresWebInstaller-${{ matrix.os }}
           path: dist/AntaresWebInstaller-${{ matrix.os }}

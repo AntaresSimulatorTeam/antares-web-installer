@@ -59,8 +59,8 @@ def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **k
     Takes two positional argument : 'src_dir' source directory to copy files from and 'target' directory
     to paste files to.
     """
-    target_dir = Path(target_dir).expanduser()
-    src_dir = Path(src_dir)
+    target_dir = Path(target_dir).expanduser().absolute()
+    src_dir = Path(src_dir).expanduser().absolute()
 
     logging.basicConfig(level=logging.INFO, format="[%(asctime)-15s] %(message)s", stream=sys.stdout)
 

@@ -9,6 +9,7 @@ import webbrowser
 from pathlib import Path
 from shutil import copy2, copytree
 
+import httpx
 import psutil
 
 from antares_web_installer.config import update_config
@@ -64,14 +65,13 @@ class App:
         Check whether Antares service is up.
         Kill the process if so.
         """
-        server_name = SERVER_NAMES[self.os_name]
         for proc in psutil.process_iter(["pid", "name"]):
-            if server_name.lower() in proc.name().lower():
-                logger.info("Running server found. We will attempt to stop it.")
+            if 'antareswebserve' in proc.name().lower():
+                logger.info(f"Running server '{proc.name()}' (pid={proc.pid}) found. Attempt to stop it.")
 
                 running_app = psutil.Process(pid=proc.pid)
                 running_app.kill()
-                running_app.wait(15)
+                running_app.wait(5)
 
                 logger.info("The application was successfully stopped.")
 
@@ -79,24 +79,35 @@ class App:
 
     def install_files(self):
         """ """
+        logger.info(f"Starting installing files in {self.target_dir}...")
+
         # if the target directory already exists and isn't empty
         if self.target_dir.is_dir() and list(self.target_dir.iterdir()):
+            logger.info("Existing files were found. Proceed checking old version...")
             # check app version
             version = self.check_version()
             logger.info(f"Old application version : {version}.")
 
             # update config file
+            logger.info("Update configuration file...")
             config_path = self.target_dir.joinpath("config.yaml")
             update_config(config_path, config_path, version)
-            # copy binaries
-            self.copy_files()
+            logger.info("Configuration file updated.")
 
+            # copy binaries
+            logger.info("Update program files...")
+            self.copy_files()
+            logger.info("Program files updated")
+
+            logger.info("Check new application version...")
             version = self.check_version()
             logger.info(f"New application version : {version}.")
 
         else:
             # copy all files from package
+            logger.info("No existing files found. Starting file copy...")
             copytree(self.source_dir, self.target_dir, dirs_exist_ok=True)
+            logger.info("Files was successfully copied.")
 
     def copy_files(self):
         """
@@ -152,10 +163,8 @@ class App:
         """
         Create a local server icon and a browser icon on desktop and
         """
-        # using pyshortcuts
-        logger.info("Generating server shortcut...")
-
         # prepare a shortcut into the desktop directory
+        logger.info("Generating server shortcut on desktop...")
         shortcut_name = SHORTCUT_NAMES[self.os_name]
         shortcut_path = Path(get_desktop()).joinpath(shortcut_name)
 
@@ -163,7 +172,9 @@ class App:
         shortcut_path.unlink(missing_ok=True)
 
         # shortcut generation
-        logging.info("Generating server shortcut...")
+        logger.info(f"Shortcut will be created in {shortcut_path}, "
+                    f"linked to '{self.server_path}' "
+                    f"and located in '{self.target_dir}' directory.")
         create_shortcut(
             shortcut_path,
             exe_path=self.server_path,
@@ -171,17 +182,27 @@ class App:
             description="Launch Antares Web Server in background",
         )
 
-        logger.info("Server shortcut successfully created.")
+        logger.info("Server shortcut was successfully created.")
 
     def start_server(self):
         """
         Launch the local server as a background task
         """
+        logger.info("Attempt to start the newly installed server...")
         args = [str(self.server_path)]
-        server_process = subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
-        time.sleep(2)  # wait for the server to complete startup
-        if server_process.poll() is None:
-            logger.info("Server was started successfully.")
+        subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
+
+        is_server_available = False
+        while not is_server_available:
+            try:
+                res = httpx.get("http://localhost:8080/", timeout=1)
+            except httpx.ConnectError:
+                logger.info("No response received. Retry ...")
+                time.sleep(1)
+            else:
+                if res.status_code:
+                    logger.info(f"Server is now available ({res.status_code}).")
+                    is_server_available = True
 
     def open_browser(self):
         """
