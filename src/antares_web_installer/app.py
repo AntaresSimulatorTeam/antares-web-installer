@@ -37,11 +37,11 @@ class InstallError(Exception):
 class App:
     source_dir: Path
     target_dir: Path
+    shortcut: bool
+    launch: bool
+    browser: bool
     app_name: str = "AntaresWebInstaller"
     os_name: str = os.name
-    shortcut: bool = False
-    launch: bool = False
-    browser: bool = False
 
     server_path: Path = dataclasses.field(init=False)
 
@@ -57,7 +57,6 @@ class App:
             self.create_shortcuts()
         if self.launch:
             self.start_server()
-        if self.browser:
             self.open_browser()
 
     def kill_running_server(self) -> None:

@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option(
+    "-t",
+    "--target-dir",
+    type=click.Path(),
+    help="Target location of Antares Web Server.",
+)
+@click.option(
     "-s",
     "--source-dir",
     "src_dir",
@@ -28,14 +34,6 @@ logger = logging.getLogger(__name__)
     help="Where to find the Antares Web sources.",
 )
 @click.option(
-    "-t",
-    "--target-dir",
-    default=TARGET_DIR,
-    show_default=True,
-    type=click.Path(),
-    help="Target location of Antares Web Server.",
-)
-@click.option(
     "--shortcut/--no-shortcut",
     default=True,
     show_default=True,
@@ -43,15 +41,9 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--launch/--no-launch",
-    default=True,
+    default=False,
     show_default=True,
-    help="Launch Antares Web Server.",
-)
-@click.option(
-    "--browser/--no-browser",
-    default=True,
-    show_default=True,
-    help="Open user's default browser at the Antares Web Server home page.",
+    help="Launch Antares Web Server."
 )
 def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **kwargs) -> None:
     """
