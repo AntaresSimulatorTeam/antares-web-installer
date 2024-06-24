@@ -43,10 +43,7 @@ jobs:
         run: hatch run types:check
 
       - name: Build Installer
-        run: | 
-          hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
-          hatch dep show requirements
-          pip freeze
+        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
 
       - name: Upload Windows binaries
         if: matrix.python-version == '3.8' && matrix.os == 'windows-latest'

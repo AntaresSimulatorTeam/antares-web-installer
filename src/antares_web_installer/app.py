@@ -6,12 +6,15 @@ import subprocess
 import textwrap
 import time
 import webbrowser
-from pathlib import Path
-from shutil import copy2, copytree
 
 import httpx
 import psutil
 
+from pathlib import Path
+from shutil import copy2, copytree
+from difflib import SequenceMatcher
+
+from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 logger = logging.getLogger(__name__)
@@ -63,15 +66,21 @@ class App:
         Kill the process if so.
         """
         for proc in psutil.process_iter(["pid", "name"]):
-            if "antareswebserve" in proc.name().lower():
+            # evaluate matching between query process name and existing process name
+            matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+            if matching_ratio > 0.8:
                 logger.info(f"Running server '{proc.name()}' (pid={proc.pid}) found. Attempt to stop it.")
 
                 running_app = psutil.Process(pid=proc.pid)
                 running_app.kill()
-                running_app.wait(5)
 
-                logger.info("The application was successfully stopped.")
-
+                try:
+                    running_app.wait(5)
+                except psutil.TimeoutExpired as e:
+                    raise InstallError("Impossible to kill the server. Please kill it manually before relaunching the "
+                                       "installer.")
+                else:
+                    logger.info("The application was successfully stopped.")
         logger.info("No other processes found.")
 
     def install_files(self):
@@ -188,19 +197,30 @@ class App:
         Launch the local server as a background task
         """
         logger.info("Attempt to start the newly installed server...")
-        args = [str(self.server_path)]
-        subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
+        args = [str(self.server_path),]
+        server_process = subprocess.Popen(args=args,
+                                          stdin=subprocess.PIPE,
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.STDOUT,
+                                          shell=True,
+                                          cwd=self.target_dir)
+
+        if not server_process.poll():
+            logger.info("Server is starting up ...")
+        else:
+            logger.info("The server unexpectedly stopped running.")
 
         nb_attempts = 0
         max_attempts = 5
 
         while nb_attempts < max_attempts:
+            attempt_info = f"Attempt #{nb_attempts}: "
             try:
                 res = httpx.get("http://localhost:8080/", timeout=1)
             except httpx.ConnectError:
-                logger.info("The server is not accepting request yet. Retry ...")
+                logger.info(attempt_info + "The server is not accepting request yet. Retry ...")
             except httpx.ConnectTimeout:
-                logger.info("The server cannot retrieve a response yet. Retry ...")
+                logger.info(attempt_info + "The server cannot retrieve a response yet. Retry ...")
             else:
                 if res.status_code:
                     logger.info(f"Server is now available ({res.status_code}).")
