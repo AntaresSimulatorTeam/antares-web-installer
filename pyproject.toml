@@ -96,6 +96,7 @@ exclude = [
     # Exclude test resources
     '^tests/config/test_config_2_15$',
     '^tests/samples.*$',
+    '^tests/results/*$'
 ]
 
 [tool.coverage.run]

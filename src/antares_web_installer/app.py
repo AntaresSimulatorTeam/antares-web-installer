@@ -12,7 +12,6 @@ from shutil import copy2, copytree
 import httpx
 import psutil
 
-from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 logger = logging.getLogger(__name__)
@@ -37,8 +36,8 @@ class InstallError(Exception):
 class App:
     source_dir: Path
     target_dir: Path
-    shortcut: bool
-    launch: bool
+    shortcut: bool = True
+    launch: bool = True
     app_name: str = "AntaresWebInstaller"
     os_name: str = os.name
 
@@ -88,8 +87,8 @@ class App:
 
             # update config file
             logger.info("Update configuration file...")
-            config_path = self.target_dir.joinpath("config.yaml")
-            update_config(config_path, config_path, version)
+            # config_path = self.target_dir.joinpath("config.yaml")
+            # update_config(config_path, config_path, version)
             logger.info("Configuration file updated.")
 
             # copy binaries

@@ -39,12 +39,7 @@ logger = logging.getLogger(__name__)
     show_default=True,
     help="Create a shortcut on desktop.",
 )
-@click.option(
-    "--launch/--no-launch",
-    default=True,
-    show_default=True,
-    help="Launch Antares Web Server."
-)
+@click.option("--launch/--no-launch", default=True, show_default=True, help="Launch Antares Web Server.")
 def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **kwargs) -> None:
     """
     Install Antares Web Server sources.
