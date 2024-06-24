@@ -1,9 +1,8 @@
 from pathlib import Path
 from unittest.mock import patch
+from antares_web_installer.config import update_to_2_15
 
 import yaml
-
-from antares_web_installer.config import update_to_2_15
 
 
 def test_update_to_2_15(datadir: Path):
