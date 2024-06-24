@@ -12,8 +12,8 @@ The `antares-web-installer` package is a Python application that allows you to i
 
 **Table of Contents**
 
-- [overview](overview.md)
-- [installation](installation.md)
-- [usage](usage.md)
-- [development](development.md)
+- [Overview](overview.md)
+- [Installation](installation.md)
+- [Usage](usage.md)
+- [Development](development.md)
 - [Changelog](CHANGELOG.md)
