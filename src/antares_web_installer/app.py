@@ -225,7 +225,7 @@ class App:
                 logger.info(attempt_info + "The server cannot retrieve a response yet. Retry ...")
             else:
                 if res.status_code:
-                    logger.info(f"Server is now available.")
+                    logger.info("Server is now available.")
                     break
             finally:
                 nb_attempts += 1
@@ -243,4 +243,4 @@ class App:
         except webbrowser.Error as e:
             raise InstallError(f"Could not open browser at '{url}': {e}") from e
         else:
-            logger.info(f"Browser was successfully opened.")
+            logger.info("Browser was successfully opened.")
