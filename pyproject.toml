@@ -30,9 +30,6 @@ dependencies = [
     'psutil<5.10',
     'pyyaml<6.1',
     'pywin32<=306; sys_platform == "win32"',
-    'fastapi<=0.111.0',
-    'pyinstaller<=6.3.8',
-    'httpx<=0.27.0',
 ]
 
 [project.urls]
@@ -88,7 +85,7 @@ serve = "mkdocs serve -f mkdocs.yml {args}"
 gh-deploy = "mkdocs gh-deploy -f mkdocs.yml {args}"
 
 [tool.hatch.envs.pyinstaller]
-dependencies = ["pyinstaller"]
+dependencies = ["pyinstaller", "httpx"]
 
 [tool.hatch.envs.pyinstaller.scripts]
 build = 'pyinstaller --onefile src/antares_web_installer/__main__.py --hidden-import antares_web_installer.shortcuts._linux_shell --hidden-import antares_web_installer.shortcuts._win32_shell --name {args:AntaresWebInstaller}'
