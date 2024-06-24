@@ -17,6 +17,7 @@ from win32com.shell import shell, shellcon
 
 _WSHELL = win32com.client.Dispatch("Wscript.Shell")
 
+
 # Windows Special Folders
 # see: https://docs.microsoft.com/en-us/windows/win32/shell/csidl
 

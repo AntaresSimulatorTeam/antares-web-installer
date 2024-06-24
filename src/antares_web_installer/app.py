@@ -6,13 +6,12 @@ import subprocess
 import textwrap
 import time
 import webbrowser
+from difflib import SequenceMatcher
+from pathlib import Path
+from shutil import copy2, copytree
 
 import httpx
 import psutil
-
-from pathlib import Path
-from shutil import copy2, copytree
-from difflib import SequenceMatcher
 
 from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
@@ -77,8 +76,9 @@ class App:
                 try:
                     running_app.wait(5)
                 except psutil.TimeoutExpired as e:
-                    raise InstallError("Impossible to kill the server. Please kill it manually before relaunching the "
-                                       "installer.")
+                    raise InstallError(
+                        "Impossible to kill the server. Please kill it manually before relaunching the installer."
+                    ) from e
                 else:
                     logger.info("The application was successfully stopped.")
         logger.info("No other processes found.")
@@ -96,8 +96,8 @@ class App:
 
             # update config file
             logger.info("Update configuration file...")
-            # config_path = self.target_dir.joinpath("config.yaml")
-            # update_config(config_path, config_path, version)
+            config_path = self.target_dir.joinpath("config.yaml")
+            update_config(config_path, config_path, version)
             logger.info("Configuration file updated.")
 
             # copy binaries
@@ -197,13 +197,15 @@ class App:
         Launch the local server as a background task
         """
         logger.info("Attempt to start the newly installed server...")
-        args = [str(self.server_path),]
-        server_process = subprocess.Popen(args=args,
-                                          stdin=subprocess.PIPE,
-                                          stdout=subprocess.PIPE,
-                                          stderr=subprocess.STDOUT,
-                                          shell=True,
-                                          cwd=self.target_dir)
+        args = [str(self.server_path)]
+        server_process = subprocess.Popen(
+            args=args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            cwd=self.target_dir,
+        )
 
         if not server_process.poll():
             logger.info("Server is starting up ...")
@@ -223,7 +225,7 @@ class App:
                 logger.info(attempt_info + "The server cannot retrieve a response yet. Retry ...")
             else:
                 if res.status_code:
-                    logger.info(f"Server is now available ({res.status_code}).")
+                    logger.info(f"Server is now available.")
                     break
             finally:
                 nb_attempts += 1
@@ -241,4 +243,4 @@ class App:
         except webbrowser.Error as e:
             raise InstallError(f"Could not open browser at '{url}': {e}") from e
         else:
-            logger.info(f"Browser was successfully opened at '{url}'.")
+            logger.info(f"Browser was successfully opened.")

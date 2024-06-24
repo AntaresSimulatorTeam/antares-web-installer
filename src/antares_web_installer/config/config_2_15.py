@@ -12,11 +12,6 @@ def update_to_2_15(config: t.MutableMapping[str, t.Any]) -> None:
     nb_cores_max = os.cpu_count() or nb_cores_min
     nb_cores_default = max(nb_cores_min, nb_cores_max - 2)
 
-    # WIP
-    if not config:
-        config = {}
-    # end of WIP
-
     config.setdefault("launcher", {})
 
     if "local" in config["launcher"]:
