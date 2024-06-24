@@ -39,7 +39,6 @@ class App:
     target_dir: Path
     shortcut: bool
     launch: bool
-    browser: bool
     app_name: str = "AntaresWebInstaller"
     os_name: str = os.name
 
@@ -193,17 +192,25 @@ class App:
         args = [str(self.server_path)]
         subprocess.Popen(args=args, start_new_session=True, cwd=self.target_dir)
 
-        is_server_available = False
-        while not is_server_available:
+        nb_attempts = 0
+        max_attempts = 5
+
+        while nb_attempts < max_attempts:
             try:
                 res = httpx.get("http://localhost:8080/", timeout=1)
             except httpx.ConnectError:
-                logger.info("No response received. Retry ...")
-                time.sleep(1)
+                logger.info("The server is not accepting request yet. Retry ...")
+            except httpx.ConnectTimeout:
+                logger.info("The server cannot retrieve a response yet. Retry ...")
             else:
                 if res.status_code:
                     logger.info(f"Server is now available ({res.status_code}).")
-                    is_server_available = True
+                    break
+            finally:
+                nb_attempts += 1
+                if nb_attempts == max_attempts:
+                    raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
+                time.sleep(5)
 
     def open_browser(self):
         """

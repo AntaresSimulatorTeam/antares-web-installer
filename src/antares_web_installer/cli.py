@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--launch/--no-launch",
-    default=False,
+    default=True,
     show_default=True,
     help="Launch Antares Web Server."
 )
