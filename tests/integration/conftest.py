@@ -15,7 +15,7 @@ EXE_NAME = "AntaresWebServer.exe" if os.name == "nt" else "AntaresWebServer"
 SPAWN_TIMEOUT = 1
 """Timeout in seconds to wait for the server process to start."""
 
-SERVER_TIMEOUT = 5
+SERVER_TIMEOUT = 2
 """Timeout in seconds to wait for the server to be ready."""
 
 

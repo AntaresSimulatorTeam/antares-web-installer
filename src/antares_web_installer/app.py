@@ -204,13 +204,13 @@ class App:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             shell=True,
-            cwd=self.target_dir,
+            cwd=self.target_dir
         )
 
         if not server_process.poll():
             logger.info("Server is starting up ...")
         else:
-            logger.info("The server unexpectedly stopped running.")
+            logger.info(f"The server unexpectedly stopped running. (code {server_process.returncode})")
 
         nb_attempts = 0
         max_attempts = 5
@@ -231,7 +231,7 @@ class App:
                 nb_attempts += 1
                 if nb_attempts == max_attempts:
                     raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
-                time.sleep(5)
+                time.sleep(2)
 
     def open_browser(self):
         """

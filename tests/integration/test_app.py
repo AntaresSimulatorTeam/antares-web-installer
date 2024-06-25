@@ -1,5 +1,6 @@
 import os
 import shutil
+from difflib import SequenceMatcher
 from pathlib import Path
 
 import psutil
@@ -21,7 +22,7 @@ def downloaded_dir_fixture(antares_web_server_path, tmp_path: Path) -> Path:
     downloaded_dir.mkdir(parents=True)
 
     # Copy sample data
-    sample_dir = SAMPLES_DIR.joinpath(os.name, "AntaresWeb-2.15.2")
+    sample_dir = SAMPLES_DIR.joinpath(os.name)
     shutil.copytree(sample_dir, downloaded_dir, dirs_exist_ok=True)
 
     # The sample directory may contain an extra scripts that must be removed
@@ -73,21 +74,24 @@ class TestApp:
         platform = {"nt": "_win32_shell", "posix": "_linux_shell"}[os.name]
         monkeypatch.setattr(f"antares_web_installer.shortcuts.{platform}.get_desktop", lambda: desktop_dir)
 
-        # Run the application
-        app = App(source_dir=downloaded_dir, target_dir=program_dir, shortcut=True, launch=True)
-        app.run()
+        # For each application versions, check if everything is working
+        for application_dir in program_dir.iterdir():
+            # Run the application
+            app = App(source_dir=downloaded_dir, target_dir=application_dir, shortcut=True, launch=True)
+            app.run()
 
-        # Check the target directory
-        assert program_dir.is_dir()
-        assert list(program_dir.iterdir())
+            # Check the target directory
+            assert application_dir.is_dir()
+            assert list(application_dir.iterdir())
 
-        # Check the desktop directory
-        assert desktop_dir.is_dir()
-        assert list(desktop_dir.iterdir())
+            # Check the desktop directory
+            assert desktop_dir.is_dir()
+            assert list(desktop_dir.iterdir())
 
-        # kill the running server
-        for proc in psutil.process_iter():
-            if "AntaresWebServer" in proc.name():
-                proc.kill()
-                proc.wait(1)
-                break
+            # kill the running server
+            for proc in psutil.process_iter():
+                matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+                if matching_ratio > 0.8:
+                    proc.kill()
+                    proc.wait(1)
+                    break
