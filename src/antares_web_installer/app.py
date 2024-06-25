@@ -204,7 +204,7 @@ class App:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             shell=True,
-            cwd=self.target_dir
+            cwd=self.target_dir,
         )
 
         if not server_process.poll():
