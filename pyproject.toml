@@ -12,6 +12,7 @@ license = "MIT"
 keywords = ["antares", "installation", "web", "desktop", "setup", "windows", "ubuntu"]
 authors = [
     { name = "Laurent LAPORTE", email = "laurent.laporte.pro@gmail.com" },
+    { name = "Maurane GLAUDE", email = "maurane.glaude@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
