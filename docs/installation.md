@@ -1,5 +1,3 @@
 # Installation
 
-```console
-pip install antares-web-installer
-```
+Download the latest release on the [installer repository](https://github.com/AntaresSimulatorTeam/antares-web-installer) depending on your os. That's it !

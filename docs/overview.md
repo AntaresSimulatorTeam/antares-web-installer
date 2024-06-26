@@ -12,10 +12,7 @@ d'[Antares Solver](https://github.com/AntaresSimulatorTeam/Antares_Simulator/rel
 Le programme d'installation peut, sur demande, ajouter des raccourcis sur le bureau pour lancer le serveur et ouvrir
 l'interface web.
 
-L'application `antares-web-installer` existe en deux déclinaisons :
-
-- une version simplifiée en ligne de commande (CLI) : `AntaresWebInstaller.exe`
-- une version graphique (GUI) intuitive : `AntaresWebInstaller.exe`
+L'application `antares-web-installer` existe uniquement en ligne de commande : `AntaresWebInstaller.exe`.
 
 L'application est disponible pour Windows et Ubuntu.
 
@@ -27,9 +24,6 @@ the [AntaREST](https://github.com/AntaresSimulatorTeam/AntaREST/releases/latest)
 and [Antares Solver](https://github.com/AntaresSimulatorTeam/Antares_Simulator/releases).
 The installer can, on request, add shortcuts to the desktop to launch the server and open the web interface.
 
-The `antares-web-installer` application exists in two versions:
-
-- a simplified command line version (CLI): `AntaresWebInstaller.exe`
-- an intuitive graphical version (GUI): `AntaresWebInstaller.exe`
+The `antares-web-installer` application exists only in command line interface (cli): `AntaresWebInstaller.exe`.
 
 The application is available for Windows and Ubuntu.
