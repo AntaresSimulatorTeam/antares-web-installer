@@ -46,7 +46,7 @@ jobs:
 
 
   release:
-
+    if: github.event.release
     runs-on: ${{ matrix.os }}
 
     strategy:
