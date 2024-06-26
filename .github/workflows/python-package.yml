@@ -8,9 +8,11 @@ on:
     branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main", "dev" ]
+  release:
+    types: [ created ]
 
 jobs:
-  build:
+  test:
 
     runs-on: ${{ matrix.os }}
 
@@ -23,38 +25,84 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: 🐍 Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install hatch
 
-      - name: Test with pytest
+      - name: 🛂 Test with pytest
         run: hatch run test
 
-      - name: Check code style with hatch
+      - name: 👔 Check code style with hatch
         run: hatch fmt --check
 
-      - name: Check typing with mypy
+      - name: ⌨️ Check typing with mypy
         run: hatch run types:check
 
-      - name: Build Installer
+
+  release:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8" ]
+        os: [ windows-latest, ubuntu-20.04, ubuntu-22.04 ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 🐍 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch
+
+      - name: ⏳ Build Installer
         run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
 
-      - name: Upload Windows binaries
-        if: matrix.python-version == '3.8' && matrix.os == 'windows-latest'
+      - name: 📦 Archive Windows binaries for upload
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}
           path: dist/AntaresWebInstaller-${{ matrix.os }}.exe
 
-      - name: Upload Ubuntu binaries
-        if: matrix.python-version == '3.8' && matrix.os != 'windows-latest'
+      - name: 📦 Archive Ubuntu binaries for upload
+        if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: AntaresWebInstaller-${{ matrix.os }}
           path: dist/AntaresWebInstaller-${{ matrix.os }}
+
+      - name: 🏷️ Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📤 Upload Release Asset
+        if: matrix.os == 'windows-latest' && github.event_name == 'release'
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist\AntaresWebInstaller-${{ matrix.os }}.exe
+
+      - name: 📤 Upload Release Asset
+        if: matrix.os != 'windows-latest' && github.event_name == 'release'
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist/AntaresWebInstaller-${{ matrix.os }}
