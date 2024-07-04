@@ -7,7 +7,7 @@ import psutil
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from antares_web_installer.app import App
+from antares_web_installer.cli.app import App
 from tests.samples import SAMPLES_DIR
 
 DOWNLOAD_FOLDER = "Download"

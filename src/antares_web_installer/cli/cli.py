@@ -6,13 +6,13 @@ from pathlib import Path
 
 import click
 
-from antares_web_installer.app import App, InstallError
+from antares_web_installer.cli.app import App, InstallError
 
 if os.name == "posix":
     TARGET_DIR = "/opt/antares-web/"
 else:
     TARGET_DIR = "C:/Program Files/AntaresWeb/"
-SRC_DIR = Path(".")
+SRC_DIR = Path("..")
 
 logger = logging.getLogger(__name__)
 
