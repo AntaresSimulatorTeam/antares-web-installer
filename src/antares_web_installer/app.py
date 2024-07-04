@@ -59,7 +59,8 @@ class App:
             self.start_server()
             self.open_browser()
 
-    def kill_running_server(self) -> None:
+    @staticmethod
+    def kill_running_server() -> None:
         """
         Check whether Antares service is up.
         Kill the process if so.
@@ -233,7 +234,8 @@ class App:
                     raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
                 time.sleep(2)
 
-    def open_browser(self):
+    @staticmethod
+    def open_browser():
         """
         Open server URL in default user's browser
         """
