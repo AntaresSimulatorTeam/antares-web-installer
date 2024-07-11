@@ -3,7 +3,7 @@ from pathlib import Path
 
 from _pytest.monkeypatch import MonkeyPatch
 
-from antares_web_installer.cli.app import App, EXCLUDED_FILES
+from antares_web_installer.app import App, EXCLUDED_FILES
 
 
 class TestApp:

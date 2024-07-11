@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Callable, TYPE_CHECKING
 
@@ -7,18 +6,18 @@ if TYPE_CHECKING:
 
 
 class BaseButton(ttk.Button):
-    def __init__(self, parent: 'ControlFrame', text: str, command=Callable):
+    def __init__(self, parent: "ControlFrame", text: str, command=Callable):
         super().__init__(master=parent, text=text, command=command)
 
     def toggle_btn(self, value: bool):
         if value:
-            self.state(['!disabled'])
+            self.state(["!disabled"])
         else:
-            self.state(['disabled'])
+            self.state(["disabled"])
 
 
 class ChangeFrameButton(BaseButton):
-    def __init__(self, parent: 'ControlFrame', text: str):
+    def __init__(self, parent: "ControlFrame", text: str):
         super().__init__(parent, text=text, command=self.change_frame)
 
     def change_frame(self):
@@ -26,7 +25,7 @@ class ChangeFrameButton(BaseButton):
 
 
 class CloseableButton(BaseButton):
-    def __init__(self, parent: 'ControlFrame', text: str, command=Callable):
+    def __init__(self, parent: "ControlFrame", text: str, command=Callable):
         super().__init__(parent, text, command)
 
     def close_window(self):
@@ -34,15 +33,20 @@ class CloseableButton(BaseButton):
 
 
 class NextBtn(ChangeFrameButton):
-    def __init__(self, parent: 'ControlFrame', text='Next'):
+    def __init__(self, parent: "ControlFrame", text="Next"):
         super().__init__(parent, text=text)
 
     def change_frame(self):
         self.master.window.current_index += 1
 
 
+class InstallBtn(NextBtn):
+    def __init__(self, parent: "ControlFrame", text="Install"):
+        super().__init__(parent, text=text)
+
+
 class BackBtn(ChangeFrameButton):
-    def __init__(self, parent: 'ControlFrame', text='Back'):
+    def __init__(self, parent: "ControlFrame", text="Back"):
         super().__init__(parent, text=text)
 
     def change_frame(self):
@@ -50,16 +54,15 @@ class BackBtn(ChangeFrameButton):
 
 
 class CancelBtn(CloseableButton):
-    def __init__(self, parent: 'ControlFrame'):
+    def __init__(self, parent: "ControlFrame"):
         super().__init__(parent, text="Cancel", command=self.confirm)
 
     def confirm(self):
-        answer = messagebox.askyesno("Quit application",
-                                     "Are you sure you want to cancel the installation?")
+        answer = messagebox.askyesno("Quit application", "Are you sure you want to cancel the installation?")
         if answer:
             self.close_window()
 
 
 class FinishBtn(CloseableButton):
-    def __init__(self, parent: 'ControlFrame'):
+    def __init__(self, parent: "ControlFrame"):
         super().__init__(parent, text="Finish", command=self.close_window)

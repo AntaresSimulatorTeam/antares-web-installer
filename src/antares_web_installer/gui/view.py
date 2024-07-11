@@ -1,21 +1,27 @@
 import tkinter as tk
-from tkinter import ttk
-from typing import Tuple
+from tkinter import ttk, font
+from typing import TYPE_CHECKING
 
-from .mvc import View, Controller
+from .mvc import View
+
+if TYPE_CHECKING:
+    from .controller import WizardController
 from .widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
+from .widgets import convert_in_du
 
 
 class WizardView(View):
-    def __init__(self, controller: Controller):
+    def __init__(self, controller: "WizardController"):
         super().__init__(controller)
 
         # configure window settings
-        self.title('Antares Web Installer')
-        self.width = 250
-        self.height = 200
+        self.title("Antares Web Installer")
+        self.width, self.height = self.set_geometry(250, 200)
+        self.resizable(False, False)
+        self.current_log = ""
 
-        self.set_geometry(self.width, self.height)
+        # set styles
+        self.initialize_styles()
 
         # initialize main frame that contains all other frames
         container = ttk.Frame(self)
@@ -50,16 +56,37 @@ class WizardView(View):
         self.change_frame()
 
     def set_geometry(self, width, height):
-        pixels = self.winfo_fpixels("9p")
-
-        du_width = int((pixels / 4) * width)
-        du_height = int((pixels / 4) * height)
+        """
+        @param width:
+        @param height:
+        @return:
+        """
+        du_width = convert_in_du(self, width)
+        du_height = convert_in_du(self, height)
 
         center_x = int((self.winfo_screenwidth() / 2) - (du_width / 2))
         center_y = int((self.winfo_screenheight() / 2) - (du_height / 2))
 
         self.geometry(f"{du_width}x{du_height}+{center_x}+{center_y}")
 
+        return du_width, du_height
+
+    def initialize_styles(self):
+        """ """
+        # default font
+        current_font = font.nametofont("TkDefaultFont").actual()
+
+        # titles
+        ttk.Style().configure("Title.TLabel", padding=(11, 11), wraplength=self.width, font=(current_font, 20))
+        # description
+        ttk.Style().configure("Description.TLabel", padding=(11, 5), wraplength=self.width, font=(current_font, 10))
+
     def change_frame(self):
-        # control btns
-        self.frames[self.current_index].tkraise()
+        """
+        @return:
+        """
+        frame = self.frames[self.current_index]
+        frame.tkraise()
+        frame.update()
+        frame.update_idletasks()
+        frame.event_generate("<<ActivateFrame>>")

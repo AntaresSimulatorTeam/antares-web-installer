@@ -6,6 +6,7 @@ import subprocess
 import textwrap
 import time
 import webbrowser
+
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
@@ -40,37 +41,60 @@ class App:
     target_dir: Path
     shortcut: bool = True
     launch: bool = True
-    app_name: str = "AntaresWebInstaller"
-    os_name: str = os.name
 
     server_path: Path = dataclasses.field(init=False)
+    progress: float = dataclasses.field(init=False)
+    nb_steps: int = dataclasses.field(init=False)
+    completed_step: int = dataclasses.field(init=False)
 
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
-        server_name = SERVER_NAMES[self.os_name]
+        server_name = SERVER_NAMES[os.name]
         self.server_path = self.target_dir.joinpath("AntaresWeb", server_name)
+
+        # Set all progress variables needed to compute current progress of the installation
+        self.nb_steps = 2  # kill, install steps
+        if self.shortcut:
+            self.nb_steps += 1
+        if self.launch:
+            self.nb_steps += 2
+        self.current_step = 0
+        self.progress = 0
 
     def run(self) -> None:
         self.kill_running_server()
+        self.current_step += 1
+
         self.install_files()
+        self.current_step += 1
+
         if self.shortcut:
             self.create_shortcuts()
+            self.current_step += 1
+
         if self.launch:
             self.start_server()
+            self.current_step += 1
             self.open_browser()
 
-    @staticmethod
-    def kill_running_server() -> None:
+    def update_progress(self, progress: float):
+        self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
+        logger.info(f"Progression: {self.progress:.2f}")
+
+    def kill_running_server(self) -> None:
         """
         Check whether Antares service is up.
         Kill the process if so.
         """
-        for proc in psutil.process_iter(["pid", "name"]):
+        processes_list = list(psutil.process_iter(["pid", "name"]))
+        processes_list_length = len(processes_list)
+
+        for index, proc in enumerate(processes_list):
             # evaluate matching between query process name and existing process name
             matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
             if matching_ratio > 0.8:
-                logger.info(f"Running server '{proc.name()}' (pid={proc.pid}) found. Attempt to stop it.")
-
+                logger.info("Running server found. Attempt to stop it ...")
+                logger.debug(f"server process:{proc.name()} -  process id: {proc.pid}")
                 running_app = psutil.Process(pid=proc.pid)
                 running_app.kill()
 
@@ -82,6 +106,7 @@ class App:
                     ) from e
                 else:
                     logger.info("The application was successfully stopped.")
+            self.update_progress((index + 1) * 100 / processes_list_length)
         logger.info("No other processes found.")
 
     def install_files(self):
@@ -94,27 +119,33 @@ class App:
             # check app version
             version = self.check_version()
             logger.info(f"Old application version : {version}.")
+            self.update_progress(25)
 
             # update config file
             logger.info("Update configuration file...")
             config_path = self.target_dir.joinpath("config.yaml")
             update_config(config_path, config_path, version)
             logger.info("Configuration file updated.")
+            self.update_progress(50)
 
             # copy binaries
             logger.info("Update program files...")
             self.copy_files()
             logger.info("Program files updated")
+            self.update_progress(75)
 
+            # check new version of the application
             logger.info("Check new application version...")
             version = self.check_version()
             logger.info(f"New application version : {version}.")
+            self.update_progress(100)
 
         else:
             # copy all files from package
             logger.info("No existing files found. Starting file copy...")
             copytree(self.source_dir, self.target_dir, dirs_exist_ok=True)
             logger.info("Files was successfully copied.")
+            self.update_progress(100)
 
     def copy_files(self):
         """
@@ -123,21 +154,24 @@ class App:
         Raise an InstallError if an error occurs while overriding a directory, if the user hasn't the permission to
         write or if self.target_dir already exists.
         """
-        for elt_path in self.source_dir.iterdir():
+        src_dir_content = list(self.source_dir.iterdir())
+        src_dir_content_length = len(src_dir_content)
+
+        for index, elt_path in enumerate(src_dir_content):
             if elt_path.name not in EXCLUDED_FILES:
+                logger.info(f"Copying '{elt_path}'")
                 try:
                     if elt_path.is_file():
-                        logger.info(f"'{elt_path}' file found and isn't an excluded file.")
                         copy2(elt_path, self.target_dir)
                     else:
                         # copy new directory
-                        logger.info(f"'{elt_path}' directory found and isn't an excluded directory.")
                         copytree(elt_path, self.target_dir.joinpath(elt_path.name), dirs_exist_ok=True)
-
                 # handle permission errors
                 except PermissionError as e:  # pragma: no cover
                     relpath = elt_path.relative_to(self.source_dir).as_posix()
                     raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
+
+                self.update_progress((index + 1) * 100 / src_dir_content_length)
 
     def check_version(self) -> str:
         """
@@ -172,11 +206,12 @@ class App:
         """
         # prepare a shortcut into the desktop directory
         logger.info("Generating server shortcut on desktop...")
-        shortcut_name = SHORTCUT_NAMES[self.os_name]
+        shortcut_name = SHORTCUT_NAMES[os.name]
         shortcut_path = Path(get_desktop()).joinpath(shortcut_name)
 
         # if the shortcut already exists, remove it
         shortcut_path.unlink(missing_ok=True)
+        self.update_progress(50)
 
         # shortcut generation
         logger.info(
@@ -192,6 +227,7 @@ class App:
         )
 
         logger.info("Server shortcut was successfully created.")
+        self.update_progress(100)
 
     def start_server(self):
         """
@@ -207,6 +243,7 @@ class App:
             shell=True,
             cwd=self.target_dir,
         )
+        self.update_progress(50)
 
         if not server_process.poll():
             logger.info("Server is starting up ...")
@@ -227,6 +264,7 @@ class App:
             else:
                 if res.status_code:
                     logger.info("Server is now available.")
+                    self.update_progress(100)
                     break
             finally:
                 nb_attempts += 1
@@ -234,8 +272,7 @@ class App:
                     raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
                 time.sleep(2)
 
-    @staticmethod
-    def open_browser():
+    def open_browser(self):
         """
         Open server URL in default user's browser
         """
@@ -246,3 +283,4 @@ class App:
             raise InstallError(f"Could not open browser at '{url}': {e}") from e
         else:
             logger.info("Browser was successfully opened.")
+        self.update_progress(100)

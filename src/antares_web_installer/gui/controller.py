@@ -1,22 +1,31 @@
+"""
+references:
+ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redirect-stdout-of-a-child-process-to-a-tkinter-text
+"""
+
 import dataclasses
-import os
+import logging
+import typing
 from pathlib import Path
 
 from .mvc import Controller, Model, View
 from .model import WizardModel
 from .view import WizardView
 
+from antares_web_installer.app import App
+
+logger = logging.getLogger(__name__)
+
 
 @dataclasses.dataclass
 class WizardController(Controller):
-    source_dir: Path = None
-    target_dir: Path = None
-    os_name: str = os.name
-    shortcut: bool = True
-    launch: bool = True
-    browser: bool = True
+    source_dir: typing.Optional[Path] = None
+    target_dir: typing.Optional[Path] = None
+    shortcut: typing.Optional[bool] = True
+    launch: typing.Optional[bool] = True
 
-    server_path: Path = None
+    server_path: typing.Optional[Path] = None
+    app: App = dataclasses.field(init=False)
 
     def __post_init__(self):
         super().__init__()
@@ -27,3 +36,29 @@ class WizardController(Controller):
 
     def init_view(self) -> View:
         return WizardView(self)
+
+    def install(self):
+        logger.debug("Initializing installer worker")
+
+        # WIP #
+        # Use a Thread to intercept logs
+
+        self.app = App(
+            source_dir=Path("/home/glaudemau/bin/AntaresWeb-ubuntu-v2.17.1/"),
+            target_dir=self.target_dir,
+            shortcut=self.shortcut,
+            launch=self.launch,
+        )
+
+        self.app.run()
+
+        logger.debug("Launch installer worker")
+        logger.debug("Installation complete")
+        self.view.frames[self.view._current_index].event_generate("<<InstallationComplete>>")
+
+    def save_target_dir(self, path: str):
+        self.target_dir = Path(path)
+
+    def save_options(self, shortcut, launch):
+        self.shortcut = shortcut
+        self.launch = launch

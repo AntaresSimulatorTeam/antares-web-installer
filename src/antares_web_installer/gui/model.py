@@ -1,6 +1,4 @@
-import dataclasses
-
-from .mvc import Model, Controller
+from .mvc import Model
 
 
 class WizardModel(Model):
