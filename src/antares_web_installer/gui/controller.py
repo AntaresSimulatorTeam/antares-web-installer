@@ -44,7 +44,7 @@ class WizardController(Controller):
         # Use a Thread to intercept logs
 
         self.app = App(
-            source_dir=Path("/home/glaudemau/bin/AntaresWeb-ubuntu-v2.17.1/"),
+            source_dir=self.source_dir,
             target_dir=self.target_dir,
             shortcut=self.shortcut,
             launch=self.launch,
