@@ -54,6 +54,7 @@ jobs:
       matrix:
         python-version: [ "3.8" ]
         os: [ windows-latest, ubuntu-20.04, ubuntu-22.04 ]
+        type: [ "CLI", "" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -69,21 +70,21 @@ jobs:
           python -m pip install hatch
 
       - name: ⏳ Build Installer
-        run: hatch run pyinstaller:build AntaresWebInstaller-${{ matrix.os }}
+        run: hatch run pyinstaller:build_cli AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
 
       - name: 📦 Archive Windows binaries for upload
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}
-          path: dist/AntaresWebInstaller-${{ matrix.os }}.exe
+          name: AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
+          path: dist/AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}.exe
 
       - name: 📦 Archive Ubuntu binaries for upload
         if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller-${{ matrix.os }}
-          path: dist/AntaresWebInstaller-${{ matrix.os }}
+          name: AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
+          path: dist/AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
 
       - name: 🏷️ Get release
         id: get_release
