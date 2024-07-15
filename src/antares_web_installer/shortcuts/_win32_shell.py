@@ -57,9 +57,9 @@ def create_shortcut(
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
 
-    target_parent, target_name = str(target).rsplit('/', maxsplit=1)
-    target_name = ' '.join(re.findall(r'[A-Z][a-z]+', target_name))
-    new_target = target_parent + '\\' + target_name
+    target_parent, target_name = str(target).rsplit("/", maxsplit=1)
+    target_name = " ".join(re.findall(r"[A-Z][a-z]+", target_name))
+    new_target = target_parent + "\\" + target_name
 
     wscript = _WSHELL.CreateShortCut(str(new_target))
     wscript.TargetPath = str(exe_path)
