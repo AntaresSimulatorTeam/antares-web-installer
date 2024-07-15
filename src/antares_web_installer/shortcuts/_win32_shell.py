@@ -10,6 +10,7 @@ It must present the same interface as the `antares_web_installer.shortcuts` modu
 """
 
 import os
+import re
 import typing as t
 
 import win32com.client
@@ -56,7 +57,11 @@ def create_shortcut(
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
 
-    wscript = _WSHELL.CreateShortCut(str(target))
+    target_parent, target_name = str(target).rsplit('/', maxsplit=1)
+    target_name = ' '.join(re.findall(r'[A-Z][a-z]+', target_name))
+    new_target = target_parent + '\\' + target_name
+
+    wscript = _WSHELL.CreateShortCut(str(new_target))
     wscript.TargetPath = str(exe_path)
     wscript.Arguments = " ".join(arguments)
     wscript.WorkingDirectory = str(working_dir)

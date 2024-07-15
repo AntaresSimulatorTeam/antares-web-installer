@@ -1,6 +1,11 @@
 # Usage
 
-## Command line version(CLI)
+## Graphic User Interface (GUI)
+
+Make sure the installer is located in an Antares Web package. 
+Double-click on the installer and follow the instructions.
+
+## Command line version (CLI)
 
 Open a new command prompt or powershell instance.
 After making sure you are in the directory containing the installer, run the following command:

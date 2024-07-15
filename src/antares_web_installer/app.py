@@ -270,7 +270,7 @@ class App:
                 nb_attempts += 1
                 if nb_attempts == max_attempts:
                     raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
-                time.sleep(2)
+                time.sleep(5)
 
     def open_browser(self):
         """
