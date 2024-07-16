@@ -69,7 +69,7 @@ jobs:
       - name: ⏳ Build Installer
         run: |
           hatch run pyinstaller:build_cli AntaresWebInstallerCLI-${{ matrix.os }}
-          hatch run pyinstaller:build_gui AntaresWebInstaller{{ }}-${{ matrix.os }}
+          hatch run pyinstaller:build_gui AntaresWebInstaller-${{ matrix.os }}
 
       - name: 📦 Archive Windows binaries for upload
         if: matrix.os == 'windows-latest'
