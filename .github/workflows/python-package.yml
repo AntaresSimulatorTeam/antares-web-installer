@@ -53,11 +53,9 @@ jobs:
       matrix:
         python-version: [ "3.8" ]
         os: [ windows-latest, ubuntu-20.04, ubuntu-22.04 ]
-        type: [ "CLI", "" ]
 
     steps:
       - uses: actions/checkout@v4
-
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -68,25 +66,26 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install hatch
 
-      - name: ⏳ Build Installer CLI version
-        run: hatch run pyinstaller:build_cli AntaresWebInstallerCLI-${{ matrix.os }}
+      - name: ⏳ Build Installer
+        run: |
+          hatch run pyinstaller:build_cli AntaresWebInstallerCLI-${{ matrix.os }}
+          hatch run pyinstaller:build_gui AntaresWebInstaller{{ }}-${{ matrix.os }}
 
-      - name: ⏳ Build Installer GUI version
-        run: hatch run pyinstaller:build_gui AntaresWebInstaller-${{ matrix.os }}
-               
       - name: 📦 Archive Windows binaries for upload
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
-          path: dist/AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}.exe
+          name: |
+            AntaresWebInstallerCLI-${{ matrix.os }}
+            AntaresWebInstaller-${{ matrix.os }}
+          path: dist/AntaresWebInstaller-${{ matrix.os }}.exe
 
       - name: 📦 Archive Ubuntu binaries for upload
         if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
-          path: dist/AntaresWebInstaller${{ matrix.type }}-${{ matrix.os }}
+          name: AntaresWebInstallerCLI-${{ matrix.os }}
+          path: dist/AntaresWebInstaller-${{ matrix.os }}
 
       - name: 🏷️ Get release
         id: get_release
@@ -94,18 +93,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📤 Upload Release Asset
+      - name: 📤 Upload Release Asset (Windows systems)
         if: matrix.os == 'windows-latest' && github.event_name == 'release'
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist\AntaresWebInstallerCLI-${{ matrix.os }}.exe
           gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist\AntaresWebInstaller-${{ matrix.os }}.exe
 
-      - name: 📤 Upload Release Asset
+      - name: 📤 Upload Release Asset (UNIX systems)
         if: matrix.os != 'windows-latest' && github.event_name == 'release'
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist/AntaresWebInstallerCLI-${{ matrix.os }}
           gh release upload --repo ${{ env.GH_REPO }} ${{ steps.get_release.outputs.tag_name }} dist/AntaresWebInstaller-${{ matrix.os }}
