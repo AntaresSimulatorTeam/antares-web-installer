@@ -9,8 +9,8 @@ Python application to install Antares Web Desktop on your local machine.
 
 **Table of Contents**
 
-- [Overview](README.md#Overview)
-- [Installation](README.md#Installation)
+- [Overview](README.md#overview)
+- [Installation](README.md#installation)
 - [Usage](README.md#usage)
 
 ## Overview
