@@ -24,12 +24,6 @@ class View(tk.Tk):
     def __init__(self, controller: "Controller"):
         super().__init__()
         self.controller = controller
-        self.init_handlers()
-
-    def init_handlers(self) -> None:
-        # self.protocol("WM_DELETE_WINDOW", self.controller.quit)
-        # self.bind("<Escape>", lambda e: self.controller.quit())
-        pass
 
 
 class Controller:

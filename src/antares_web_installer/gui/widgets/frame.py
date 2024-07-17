@@ -3,6 +3,7 @@ import tkinter as tk
 import typing
 from threading import Thread
 from tkinter import ttk, filedialog
+from tkinter.messagebox import showerror
 from typing import TYPE_CHECKING
 
 from antares_web_installer.shortcuts import get_homedir
@@ -13,12 +14,14 @@ from .button import CancelBtn, BackBtn, NextBtn, FinishBtn, InstallBtn
 if TYPE_CHECKING:
     from antares_web_installer.gui.view import WizardView
 
+FORMAT = "[%(asctime)-15s] %(message)s"
+
 
 class LogManager(logging.Handler):
     def __init__(self, progress_frame: "ProgressFrame"):
         logging.Handler.__init__(self)
         self.setLevel(logging.INFO)
-        formatter = logging.Formatter("[%(asctime)-15s] %(message)s")
+        formatter = logging.Formatter(FORMAT)
         self.setFormatter(formatter)
 
         self.progress_frame = progress_frame
@@ -257,16 +260,29 @@ class ProgressFrame(BasicFrame):
     def on_active_frame(self, event):
         # Lazy import for typing and testing purposes
         from antares_web_installer.gui.controller import WizardController
-
         main_logger = logging.getLogger("antares_web_installer.app")
-        log_manager = LogManager(self)
-        main_logger.addHandler(log_manager)
 
+        # retrieve app logger
         if isinstance(self.window.controller, WizardController):
-            thread = Thread(target=self.window.controller.install)  # FIXME
+
+            # redirect logs in the target `tmp` directory
+            file_logger = logging.FileHandler(self.window.controller.target_dir.joinpath('tmp/web-installer.log'))
+            file_logger.setFormatter(logging.Formatter(FORMAT))
+            file_logger.setLevel(logging.ERROR)
+            main_logger.addHandler(file_logger)
+
+            # One log after another is displayed in the main window
+            log_manager = LogManager(self)
+            main_logger.addHandler(log_manager)
+
+            # Launching installation in concurrency with current process
+            thread = Thread(target=self.window.controller.install)
             thread.start()
         else:
-            raise NotImplementedError(f"Not implemented {type(self.window.controller)}")
+            main_logger.error(f"Not implemented {type(self.window.controller)}.")
+            showerror("Error",
+                      "Installer encounters an issue while instantiating controller (code 'NotImplementedError').")
+            self.window.quit()
 
     def on_installation_complete(self, event):
         self.control_btn.btns["next"].toggle_btn(True)

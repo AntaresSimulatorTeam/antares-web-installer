@@ -40,9 +40,6 @@ class WizardController(Controller):
     def install(self):
         logger.debug("Initializing installer worker")
 
-        # WIP #
-        # Use a Thread to intercept logs
-
         self.app = App(
             source_dir=self.source_dir,
             target_dir=self.target_dir,

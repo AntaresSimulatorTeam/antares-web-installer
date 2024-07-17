@@ -94,7 +94,7 @@ class App:
             matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
             if matching_ratio > 0.8:
                 logger.info("Running server found. Attempt to stop it ...")
-                logger.debug(f"server process:{proc.name()} -  process id: {proc.pid}")
+                logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")
                 running_app = psutil.Process(pid=proc.pid)
                 running_app.kill()
 
