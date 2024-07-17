@@ -46,7 +46,7 @@ jobs:
 
   release:
     if: github.event.release
-    runs-on: [ ${{ matrix.ubuntu-version }}, ${{ matrix.windows }} ]
+    runs-on: [ "${{ matrix.ubuntu-version }}", "${{ matrix.windows }}" ]
 
     strategy:
       fail-fast: false
