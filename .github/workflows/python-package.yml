@@ -46,11 +46,12 @@ jobs:
 
   release:
     if: github.event.release
-    runs-on: join( ${{ matrix.ubuntu-version }}, ${{ matrix.windows }} )
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-20.04, ubuntu-22.04, windows-latest ]
         python-version: [ "3.8" ]
         ubuntu-version: [ ubuntu-20.04, ubuntu-22.04 ]
         windows-version: [ windows-latest ]
