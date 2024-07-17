@@ -68,8 +68,15 @@ class ControlFrame(ttk.Frame):
             btn.pack(side=tk.RIGHT, anchor=tk.E)
 
 
-class ChangeFrame(ttk.Frame):
-    """ """
+class BasicFrame(ttk.Frame):
+    """
+    # TODO: fill the comment section
+    Basic class for every frames of the project
+    @attribute master:
+    @attribute window:
+    @attribute header:
+    @attribute body:
+    """
 
     def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
@@ -81,14 +88,8 @@ class ChangeFrame(ttk.Frame):
         self.window = window
         self.index = index
 
-    def get_next_frame(self):
-        return self.index + 1
 
-    def get_previous_frame(self):
-        return self.index - 1
-
-
-class WelcomeFrame(ChangeFrame):
+class WelcomeFrame(BasicFrame):
     # label title
     # label description
     # side pic
@@ -120,7 +121,7 @@ class WelcomeFrame(ChangeFrame):
         self.control_btn.pack(side="bottom", fill="x")
 
 
-class PathChoicesFrame(ChangeFrame):
+class PathChoicesFrame(BasicFrame):
     """
     see https://learn.microsoft.com/en-us/windows/win32/uxguide/vis-layout
     """
@@ -180,7 +181,7 @@ class PathChoicesFrame(ChangeFrame):
             self.control_btn.btns["next"].change_frame()
 
 
-class OptionChoicesFrame(ChangeFrame):
+class OptionChoicesFrame(BasicFrame):
     def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
         super().__init__(master, window, index, *args, **kwargs)
         # Lazy import for typing and testing purposes
@@ -191,8 +192,8 @@ class OptionChoicesFrame(ChangeFrame):
         ttk.Label(self.header, text="Choose whether to apply these installation options.", style="Description.TLabel")
 
         if isinstance(self.window.controller, WizardController):
-            self.is_shortcut = tk.BooleanVar(value=self.window.controller.shortcut)  # app
-            self.is_launch = tk.BooleanVar(value=self.window.controller.launch)  # app
+            self.is_shortcut = tk.BooleanVar(value=self.window.controller.shortcut)
+            self.is_launch = tk.BooleanVar(value=self.window.controller.launch)
 
         ttk.Checkbutton(self.body, text="Create shortcut on Desktop", variable=self.is_shortcut).pack(
             side="top", fill="x"
@@ -202,18 +203,20 @@ class OptionChoicesFrame(ChangeFrame):
         ).pack(side="top", fill="x")
 
         self.control_btn = ControlFrame(parent=self, window=window, cancel_btn=True, back_btn=True, install_btn=True)
+        self.control_btn.btns["install"].configure(command=self.get_next_frame)
         self.control_btn.pack(side="bottom", fill="x")
 
-    def save(self, shortcut, launch):
+    def get_next_frame(self):
         """ """
         # Lazy import for typing and testing purposes
         from antares_web_installer.gui.controller import WizardController
 
         if isinstance(self.window.controller, WizardController):
-            self.window.controller.save_options(shortcut, launch)
+            self.window.controller.save_options(self.is_shortcut.get(), self.is_launch.get())
+        self.control_btn.btns["install"].change_frame()
 
 
-class ProgressFrame(ChangeFrame):
+class ProgressFrame(BasicFrame):
     def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
         super().__init__(master, window, index, *args, **kwargs)
         self.control_btn = ControlFrame(parent=self, window=window, cancel_btn=True, next_btn=True)
@@ -230,11 +233,16 @@ class ProgressFrame(ChangeFrame):
 
         # Progress Bar values
         self.current_progress = tk.StringVar(value="Progress: 0%")
-        ttk.Label(self.body, textvariable=self.current_progress).pack(side="top", fill="x", padx=5)
+        ttk.Label(self.body,
+                  textvariable=self.current_progress,
+                  style="Description.TLabel").pack(side="top", fill="x", padx=5)
 
         # Logs display
         self.current_logs = tk.StringVar(value="")
-        self.console = ttk.Label(self.body, textvariable=self.current_logs, wraplength=window.width)
+        self.console = ttk.Label(self.body,
+                                 textvariable=self.current_logs,
+                                 wraplength=window.width,
+                                 style="Description.TLabel")
         self.console.pack(side="top", fill="x", padx=5)
 
         # next btn is initially disabled
@@ -264,7 +272,7 @@ class ProgressFrame(ChangeFrame):
         self.control_btn.btns["next"].toggle_btn(True)
 
 
-class CongratulationFrame(ChangeFrame):
+class CongratulationFrame(BasicFrame):
     def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
         super().__init__(master, window, index, *args, **kwargs)
 
@@ -272,8 +280,9 @@ class CongratulationFrame(ChangeFrame):
 
         ttk.Label(
             self.body,
-            text="The installation was successfully complete. You can now click on the Finish button "
+            text="The installation was successfully completed. You can now click on the Finish button "
             "to close this window.",
+            style="Description.TLabel"
         ).pack(side="top", fill="x")
 
         self.control_btn = ControlFrame(parent=self, window=window, finish_btn=True)

@@ -9,7 +9,7 @@ import webbrowser
 
 from difflib import SequenceMatcher
 from pathlib import Path
-from shutil import copy2, copytree
+from shutil import copy2, copytree, SameFileError
 
 import httpx
 import psutil
@@ -170,6 +170,9 @@ class App:
                 except PermissionError as e:  # pragma: no cover
                     relpath = elt_path.relative_to(self.source_dir).as_posix()
                     raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
+                except SameFileError as e:
+                    # test if current file is the installer
+                    pass
 
                 self.update_progress((index + 1) * 100 / src_dir_content_length)
 
