@@ -77,9 +77,9 @@ class WizardView(View):
         current_font = font.nametofont("TkDefaultFont").actual()
 
         # titles
-        ttk.Style().configure("Title.TLabel", padding=(11, 11), wraplength=self.width, font=(current_font, 20))
+        ttk.Style().configure("Title.TLabel", padding=(11, 11), wraplength=self.width - 11*2, font=(current_font, 20))
         # description
-        ttk.Style().configure("Description.TLabel", padding=(11, 5), wraplength=self.width, font=(current_font, 10))
+        ttk.Style().configure("Description.TLabel", padding=(11, 5), wraplength=self.width - 11*2, font=(current_font, 10))
 
     def change_frame(self):
         """

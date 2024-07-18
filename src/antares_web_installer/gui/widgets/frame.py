@@ -7,9 +7,7 @@ from tkinter.messagebox import showerror
 from typing import TYPE_CHECKING
 
 from antares_web_installer.shortcuts import get_homedir
-
 from .button import CancelBtn, BackBtn, NextBtn, FinishBtn, InstallBtn
-
 
 if TYPE_CHECKING:
     from antares_web_installer.gui.view import WizardView
@@ -99,8 +97,6 @@ class WelcomeFrame(BasicFrame):
     # button control
     def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
         super().__init__(master, window, index, *args, **kwargs)
-        # global settings
-
         # header content
         header_content = ttk.Label(self.header, text="Welcome to Antares Web Installer", style="Title.TLabel")
         header_content.pack(side="top", fill="x")
