@@ -236,16 +236,15 @@ class ProgressFrame(BasicFrame):
 
         # Progress Bar values
         self.current_progress = tk.StringVar(value="Progress: 0%")
-        ttk.Label(self.body,
-                  textvariable=self.current_progress,
-                  style="Description.TLabel").pack(side="top", fill="x", padx=5)
+        ttk.Label(self.body, textvariable=self.current_progress, style="Description.TLabel").pack(
+            side="top", fill="x", padx=5
+        )
 
         # Logs display
         self.current_logs = tk.StringVar(value="")
-        self.console = ttk.Label(self.body,
-                                 textvariable=self.current_logs,
-                                 wraplength=window.width,
-                                 style="Description.TLabel")
+        self.console = ttk.Label(
+            self.body, textvariable=self.current_logs, wraplength=window.width, style="Description.TLabel"
+        )
         self.console.pack(side="top", fill="x", padx=5)
 
         # next btn is initially disabled
@@ -260,13 +259,13 @@ class ProgressFrame(BasicFrame):
     def on_active_frame(self, event):
         # Lazy import for typing and testing purposes
         from antares_web_installer.gui.controller import WizardController
+
         main_logger = logging.getLogger("antares_web_installer.app")
 
         # retrieve app logger
         if isinstance(self.window.controller, WizardController):
-
             # redirect logs in the target `tmp` directory
-            file_logger = logging.FileHandler(self.window.controller.target_dir.joinpath('tmp/web-installer.log'))
+            file_logger = logging.FileHandler(self.window.controller.target_dir.joinpath("tmp/web-installer.log"))
             file_logger.setFormatter(logging.Formatter(FORMAT))
             file_logger.setLevel(logging.ERROR)
             main_logger.addHandler(file_logger)
@@ -280,8 +279,9 @@ class ProgressFrame(BasicFrame):
             thread.start()
         else:
             main_logger.error(f"Not implemented {type(self.window.controller)}.")
-            showerror("Error",
-                      "Installer encounters an issue while instantiating controller (code 'NotImplementedError').")
+            showerror(
+                "Error", "Installer encounters an issue while instantiating controller (code 'NotImplementedError')."
+            )
             self.window.quit()
 
     def on_installation_complete(self, event):
@@ -298,7 +298,7 @@ class CongratulationFrame(BasicFrame):
             self.body,
             text="The installation was successfully completed. You can now click on the Finish button "
             "to close this window.",
-            style="Description.TLabel"
+            style="Description.TLabel",
         ).pack(side="top", fill="x")
 
         self.control_btn = ControlFrame(parent=self, window=window, finish_btn=True)

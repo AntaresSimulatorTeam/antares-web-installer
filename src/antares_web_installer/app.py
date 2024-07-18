@@ -170,7 +170,7 @@ class App:
                 except PermissionError as e:  # pragma: no cover
                     relpath = elt_path.relative_to(self.source_dir).as_posix()
                     raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
-                except SameFileError as e:
+                except SameFileError:
                     # test if current file is the installer
                     pass
 
