@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, font
+from tkinter.messagebox import showerror
 from typing import TYPE_CHECKING
 
 from .mvc import View
@@ -92,3 +93,7 @@ class WizardView(View):
         frame.update()
         frame.update_idletasks()
         frame.event_generate("<<ActivateFrame>>")
+
+    def raise_error(self, msg):
+        showerror('Error', msg)
+        self.quit()

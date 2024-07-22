@@ -1,9 +1,9 @@
 import logging
+import os
 import tkinter as tk
 import typing
 from threading import Thread
 from tkinter import ttk, filedialog
-from tkinter.messagebox import showerror
 from typing import TYPE_CHECKING
 
 from antares_web_installer.shortcuts import get_homedir
@@ -15,13 +15,16 @@ if TYPE_CHECKING:
 FORMAT = "[%(asctime)-15s] %(message)s"
 
 
+class ViewError(Exception):
+    pass
+
+
 class LogManager(logging.Handler):
     def __init__(self, progress_frame: "ProgressFrame"):
         logging.Handler.__init__(self)
         self.setLevel(logging.INFO)
         formatter = logging.Formatter(FORMAT)
         self.setFormatter(formatter)
-
         self.progress_frame = progress_frame
 
     def emit(self, logs: logging.LogRecord):
@@ -249,6 +252,9 @@ class ProgressFrame(BasicFrame):
         self.bind("<<ActivateFrame>>", self.on_active_frame)
         self.bind("<<InstallationComplete>>", self.on_installation_complete)
 
+        # thread handling
+        self.thread = None
+
     def progress_update(self, value: float):
         self.progress_bar["value"] = value
 
@@ -256,12 +262,25 @@ class ProgressFrame(BasicFrame):
         # Lazy import for typing and testing purposes
         from antares_web_installer.gui.controller import WizardController
 
+        # retrieve app logger
         main_logger = logging.getLogger("antares_web_installer.app")
 
-        # retrieve app logger
         if isinstance(self.window.controller, WizardController):
+            # create new tmp directory if it does not exist yet
+            tmp_dir_path = self.window.controller.target_dir.joinpath("tmp/")
+
+            try:
+                os.mkdir(tmp_dir_path)
+            except FileExistsError:
+                main_logger.warning("Directory already exists. Skip directory creation step.")
+            except FileNotFoundError as e:
+                msg = "An error occured while saving logs."
+                main_logger.error(f"'tmp' directory was not found in {tmp_dir_path}: {e}")
+                main_logger.info(msg)
+                self.window.raise_error(msg)
+
             # redirect logs in the target `tmp` directory
-            file_logger = logging.FileHandler(self.window.controller.target_dir.joinpath("tmp/web-installer.log"))
+            file_logger = logging.FileHandler(tmp_dir_path.joinpath("web-installer.log"))
             file_logger.setFormatter(logging.Formatter(FORMAT))
             file_logger.setLevel(logging.ERROR)
             main_logger.addHandler(file_logger)
@@ -270,15 +289,13 @@ class ProgressFrame(BasicFrame):
             log_manager = LogManager(self)
             main_logger.addHandler(log_manager)
 
-            # Launching installation in concurrency with current process
-            thread = Thread(target=self.window.controller.install)
-            thread.start()
+            # Launching installation in concurrency with the current process
+            self.thread = Thread(target=self.window.controller.install, args=())
+            self.thread.start()
         else:
+            msg = "The installer encounters an issue while instantiating controller (code 'NotImplementedError')."
             main_logger.error(f"Not implemented {type(self.window.controller)}.")
-            showerror(
-                "Error", "Installer encounters an issue while instantiating controller (code 'NotImplementedError')."
-            )
-            self.window.quit()
+            self.window.raise_error(msg)
 
     def on_installation_complete(self, event):
         self.control_btn.btns["next"].toggle_btn(True)

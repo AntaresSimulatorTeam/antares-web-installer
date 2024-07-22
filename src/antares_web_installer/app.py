@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # List of files and directories to exclude during installation
 COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
-POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
-WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
+POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker", "AntaresWebInstaller"}
+WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe", "AntaresWebInstaller.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}

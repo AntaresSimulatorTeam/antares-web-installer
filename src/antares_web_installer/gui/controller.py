@@ -12,7 +12,7 @@ from .mvc import Controller, Model, View
 from .model import WizardModel
 from .view import WizardView
 
-from antares_web_installer.app import App
+from antares_web_installer.app import App, InstallError
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +47,16 @@ class WizardController(Controller):
             launch=self.launch,
         )
 
-        self.app.run()
-
-        logger.debug("Launch installer worker")
-        logger.debug("Installation complete")
-        self.view.frames[self.view._current_index].event_generate("<<InstallationComplete>>")
+        try:
+            self.app.run()
+        except InstallError as e:
+            logger.error(e)
+            self.view.raise_error("The installation encountered an error. The target directory may have be corrupted. "
+                                  "Please check its integrity and try again.")
+        else:
+            logger.debug("Launch installer worker")
+            logger.debug("Installation complete")
+            self.view.frames[self.view.current_index].event_generate("<<InstallationComplete>>")
 
     def save_target_dir(self, path: str):
         self.target_dir = Path(path)
