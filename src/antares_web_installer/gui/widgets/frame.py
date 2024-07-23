@@ -1,5 +1,4 @@
 import logging
-import os
 import tkinter as tk
 import typing
 from threading import Thread
@@ -316,7 +315,7 @@ class ProgressFrame(BasicFrame):
         if isinstance(self.window.controller, WizardController):
             # move log file in application log directory
             file_name = self.window.controller.log_file.name
-            log_directory = self.window.controller.target_dir.joinpath('logs')
+            log_directory = self.window.controller.target_dir.joinpath("logs")
             self.window.get_log_file().rename(self.window.controller.target_dir.joinpath(log_directory, file_name))
 
         self.control_btn.btns["next"].toggle_btn(True)

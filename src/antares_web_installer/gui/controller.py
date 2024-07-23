@@ -79,12 +79,16 @@ class WizardController(Controller):
             self.app.run()
         except InstallError as e:
             logger.error(e)
-            self.view.raise_error("The installation encountered an error. The target directory may have been "
-                                  "corrupted. Please check its integrity and try again.")
+            self.view.raise_error(
+                "The installation encountered an error. The target directory may have been "
+                "corrupted. Please check its integrity and try again."
+            )
         except psutil.NoSuchProcess as e:
             logger.error(e)
-            self.view.raise_error("The installation encountered an error. The installation encountered an error while "
-                                  "scanning processes. Please retry later.")
+            self.view.raise_error(
+                "The installation encountered an error. The installation encountered an error while "
+                "scanning processes. Please retry later."
+            )
         else:
             logger.debug("Launch installer worker")
             logger.debug("Installation complete")

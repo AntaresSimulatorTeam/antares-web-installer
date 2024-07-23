@@ -59,7 +59,7 @@ class WizardView(View):
     def get_log_file(self):
         try:
             return self.controller.log_file
-        except AttributeError as e:
+        except AttributeError:
             self.raise_error("The installer encountered an error while initializing the logger. Please retry later.")
 
     def set_geometry(self, width, height):
@@ -101,5 +101,5 @@ class WizardView(View):
         frame.event_generate("<<ActivateFrame>>")
 
     def raise_error(self, msg):
-        showerror('Error', msg)
+        showerror("Error", msg)
         self.quit()
