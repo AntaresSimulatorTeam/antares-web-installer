@@ -56,6 +56,12 @@ class WizardView(View):
         self._current_index = new_index
         self.change_frame()
 
+    def get_log_file(self):
+        try:
+            return self.controller.log_file
+        except AttributeError as e:
+            self.raise_error("The installer encountered an error while initializing the logger. Please retry later.")
+
     def set_geometry(self, width, height):
         """
         @param width:

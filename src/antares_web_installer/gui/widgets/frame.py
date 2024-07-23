@@ -23,7 +23,7 @@ class LogManager(logging.Handler):
     def __init__(self, progress_frame: "ProgressFrame"):
         logging.Handler.__init__(self)
         self.setLevel(logging.INFO)
-        formatter = logging.Formatter(FORMAT)
+        formatter = logging.Formatter("[%(asctime)-15s] %(message)s")
         self.setFormatter(formatter)
         self.progress_frame = progress_frame
 
@@ -258,6 +258,31 @@ class ProgressFrame(BasicFrame):
     def progress_update(self, value: float):
         self.progress_bar["value"] = value
 
+    def initialize_user_log_manager(self, logger):
+        # One log after another is displayed in the main window
+        log_manager = LogManager(self)
+        logger.addHandler(log_manager)
+
+    def initialize_file_log_manager(self, logger):
+        from antares_web_installer.gui.controller import WizardController
+
+        if isinstance(self.window.controller, WizardController):
+            # create new tmp directory if it does not exist yet
+            tmp_dir_path = self.window.controller.log_path
+            tmp_file_name = "web-installer.log"
+
+            tmp_file = tmp_dir_path.joinpath(tmp_file_name)
+
+            # check if file exists
+            if tmp_file not in list(tmp_dir_path.iterdir()):
+                logger.info("No temporary file was found. Create a new one.")
+                # if not, create it first
+
+            if tmp_file.exists():
+                logger.info("Creation successful")
+            else:
+                self.window.raise_error("No temporary file was created or found.")
+
     def on_active_frame(self, event):
         # Lazy import for typing and testing purposes
         from antares_web_installer.gui.controller import WizardController
@@ -265,39 +290,35 @@ class ProgressFrame(BasicFrame):
         # retrieve app logger
         main_logger = logging.getLogger("antares_web_installer.app")
 
+        # Initialize log manager
+        log_manager = LogManager(self)
+        main_logger.addHandler(log_manager)
+
         if isinstance(self.window.controller, WizardController):
-            # create new tmp directory if it does not exist yet
-            tmp_dir_path = self.window.controller.target_dir.joinpath("tmp/")
-
-            try:
-                os.mkdir(tmp_dir_path)
-            except FileExistsError:
-                main_logger.warning("Directory already exists. Skip directory creation step.")
-            except FileNotFoundError as e:
-                msg = "An error occured while saving logs."
-                main_logger.error(f"'tmp' directory was not found in {tmp_dir_path}: {e}")
-                main_logger.info(msg)
-                self.window.raise_error(msg)
-
             # redirect logs in the target `tmp` directory
-            file_logger = logging.FileHandler(tmp_dir_path.joinpath("web-installer.log"))
-            file_logger.setFormatter(logging.Formatter(FORMAT))
-            file_logger.setLevel(logging.ERROR)
+            file_logger = logging.FileHandler(self.window.get_log_file())
+            file_logger.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s: %(message)s"))
+            file_logger.setLevel(logging.INFO)
             main_logger.addHandler(file_logger)
-
-            # One log after another is displayed in the main window
-            log_manager = LogManager(self)
-            main_logger.addHandler(log_manager)
 
             # Launching installation in concurrency with the current process
             self.thread = Thread(target=self.window.controller.install, args=())
             self.thread.start()
         else:
-            msg = "The installer encounters an issue while instantiating controller (code 'NotImplementedError')."
+            msg = "The installer encounters an issue while instantiating controller ('NotImplementedError')."
             main_logger.error(f"Not implemented {type(self.window.controller)}.")
             self.window.raise_error(msg)
 
     def on_installation_complete(self, event):
+        # Lazy import for typing and testing purposes
+        from antares_web_installer.gui.controller import WizardController
+
+        if isinstance(self.window.controller, WizardController):
+            # move log file in application log directory
+            file_name = self.window.controller.log_file.name
+            log_directory = self.window.controller.target_dir.joinpath('logs')
+            self.window.get_log_file().rename(self.window.controller.target_dir.joinpath(log_directory, file_name))
+
         self.control_btn.btns["next"].toggle_btn(True)
 
 
