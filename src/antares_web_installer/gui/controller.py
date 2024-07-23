@@ -9,7 +9,7 @@ import typing
 from pathlib import Path
 
 import psutil
-from platformdirs import user_log_dir
+from platformdirs import user_runtime_dir
 
 from .mvc import Controller, Model, View
 from .model import WizardModel
@@ -37,7 +37,7 @@ class WizardController(Controller):
         self.initialize_log_path()
 
     def initialize_log_path(self):
-        self.log_path = Path(user_log_dir("AntaresWebInstaller", "RTE"))
+        self.log_path = Path(user_runtime_dir("AntaresWebInstaller", "RTE"))
         if not self.log_path.exists():
             msg = "No log directory found with path '{}'.".format(self.log_path)
             logger.warning(msg)

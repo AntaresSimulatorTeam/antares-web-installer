@@ -1,4 +1,5 @@
 import logging
+import shutil
 import tkinter as tk
 import typing
 from threading import Thread
@@ -253,14 +254,16 @@ class ProgressFrame(BasicFrame):
 
         # thread handling
         self.thread = None
+        self.log_manager = None
+        self.file_logger = None
 
     def progress_update(self, value: float):
         self.progress_bar["value"] = value
 
     def initialize_user_log_manager(self, logger):
         # One log after another is displayed in the main window
-        log_manager = LogManager(self)
-        logger.addHandler(log_manager)
+        self.log_manager = LogManager(self)
+        logger.addHandler(self.log_manager)
 
     def initialize_file_log_manager(self, logger):
         from antares_web_installer.gui.controller import WizardController
@@ -290,15 +293,15 @@ class ProgressFrame(BasicFrame):
         main_logger = logging.getLogger("antares_web_installer.app")
 
         # Initialize log manager
-        log_manager = LogManager(self)
-        main_logger.addHandler(log_manager)
+        self.log_manager = LogManager(self)
+        main_logger.addHandler(self.log_manager)
 
         if isinstance(self.window.controller, WizardController):
             # redirect logs in the target `tmp` directory
-            file_logger = logging.FileHandler(self.window.get_log_file())
-            file_logger.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s: %(message)s"))
-            file_logger.setLevel(logging.INFO)
-            main_logger.addHandler(file_logger)
+            self.file_logger = logging.FileHandler(self.window.get_log_file())
+            self.file_logger.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s: %(message)s"))
+            self.file_logger.setLevel(logging.INFO)
+            main_logger.addHandler(self.file_logger)
 
             # Launching installation in concurrency with the current process
             self.thread = Thread(target=self.window.controller.install, args=())
@@ -309,15 +312,6 @@ class ProgressFrame(BasicFrame):
             self.window.raise_error(msg)
 
     def on_installation_complete(self, event):
-        # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
-
-        if isinstance(self.window.controller, WizardController):
-            # move log file in application log directory
-            file_name = self.window.controller.log_file.name
-            log_directory = self.window.controller.target_dir.joinpath("logs")
-            self.window.get_log_file().rename(self.window.controller.target_dir.joinpath(log_directory, file_name))
-
         self.control_btn.btns["next"].toggle_btn(True)
 
 
@@ -336,3 +330,16 @@ class CongratulationFrame(BasicFrame):
 
         self.control_btn = ControlFrame(parent=self, window=window, finish_btn=True)
         self.control_btn.pack(side="bottom", fill="x")
+
+        self.bind("<<ActivateFrame>>", self.on_active_frame)
+
+    def on_active_frame(self, event):
+        # Lazy import for typing and testing purposes
+        from antares_web_installer.gui.controller import WizardController
+
+        if isinstance(self.window.controller, WizardController):
+            # copy log file in application log directory
+            file_name = self.window.controller.log_file.name
+            log_directory = self.window.controller.target_dir.joinpath("logs")
+            # self.window.get_log_file().rename(self.window.controller.target_dir.joinpath(log_directory, file_name))
+            shutil.copy(self.window.get_log_file(), log_directory.joinpath(file_name))
