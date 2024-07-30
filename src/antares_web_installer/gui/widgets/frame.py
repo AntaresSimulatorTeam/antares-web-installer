@@ -1,5 +1,4 @@
 import logging
-import shutil
 import tkinter as tk
 import typing
 from threading import Thread
@@ -17,24 +16,6 @@ FORMAT = "[%(asctime)-15s] %(message)s"
 
 class ViewError(Exception):
     pass
-
-
-class LogManager(logging.Handler):
-    def __init__(self, progress_frame: "ProgressFrame"):
-        logging.Handler.__init__(self)
-        self.setLevel(logging.INFO)
-        formatter = logging.Formatter("[%(asctime)-15s] %(message)s")
-        self.setFormatter(formatter)
-        self.progress_frame = progress_frame
-
-    def emit(self, logs: logging.LogRecord):
-        content = logs.msg
-        if content.startswith("Progression: "):
-            current_progress = float(content.lstrip("Progression: "))
-            self.progress_frame.current_progress.set(content + "%")
-            self.progress_frame.progress_update(current_progress)
-        else:
-            self.progress_frame.current_logs.set(content)
 
 
 class ControlFrame(ttk.Frame):
@@ -74,15 +55,14 @@ class ControlFrame(ttk.Frame):
 
 class BasicFrame(ttk.Frame):
     """
-    # TODO: fill the comment section
-    Basic class for every frames of the project
+    Basic class for every frame of the project
     @attribute master:
     @attribute window:
     @attribute header:
     @attribute body:
     """
 
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.header = ttk.Frame(self)
         self.body = ttk.Frame(self)
@@ -90,7 +70,6 @@ class BasicFrame(ttk.Frame):
         self.body.pack(side="top", fill="x")
 
         self.window = window
-        self.index = index
 
 
 class WelcomeFrame(BasicFrame):
@@ -98,8 +77,8 @@ class WelcomeFrame(BasicFrame):
     # label description
     # side pic
     # button control
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
-        super().__init__(master, window, index, *args, **kwargs)
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
+        super().__init__(master, window, *args, **kwargs)
         # header content
         header_content = ttk.Label(self.header, text="Welcome to Antares Web Installer", style="Title.TLabel")
         header_content.pack(side="top", fill="x")
@@ -119,6 +98,9 @@ class WelcomeFrame(BasicFrame):
         back_btn = self.control_btn.btns.get("back")
         if back_btn is not None:
             back_btn.toggle_btn(False)
+        else:
+            # error to raise
+            pass
 
         self.control_btn.pack(side="bottom", fill="x")
 
@@ -128,8 +110,8 @@ class PathChoicesFrame(BasicFrame):
     see https://learn.microsoft.com/en-us/windows/win32/uxguide/vis-layout
     """
 
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
-        super().__init__(master, window, index, *args, **kwargs)
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
+        super().__init__(master, window, *args, **kwargs)
         # Lazy import for typing and testing
         from antares_web_installer.gui.controller import WizardController
 
@@ -146,10 +128,9 @@ class PathChoicesFrame(BasicFrame):
         )
         description.grid(column=0, row=0, sticky="w")
 
-        if isinstance(self.window.controller, WizardController):
-            self.target_path = tk.StringVar(
-                value=str(self.window.controller.target_dir),
-            )
+        self.target_path = tk.StringVar(
+            value="",
+        )
         target_entry = tk.Entry(
             self.body,
             textvariable=self.target_path,
@@ -164,7 +145,12 @@ class PathChoicesFrame(BasicFrame):
         self.control_btn.btns["next"].configure(command=self.get_next_frame)
         self.control_btn.pack(side="bottom", fill="x")
 
-    def browse(self):
+        self.bind("<<ActivateFrame>>", self.on_active_frame)
+
+    def on_active_frame(self, event):
+        self.target_path.set(str(self.window.get_target_dir()))
+
+    def browse(self):  # TODO: staticmethod ?
         dir_name = filedialog.askdirectory(
             title="Choose the target directory",
             initialdir=get_homedir(),
@@ -173,29 +159,27 @@ class PathChoicesFrame(BasicFrame):
 
     def get_next_frame(self):
         # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
 
         # save new target_dir
-        if isinstance(self.window.controller, WizardController):
-            self.window.controller.save_target_dir(self.target_path.get())  # FIXME
+        self.window.set_target_dir(self.target_path.get())
         next_btn = self.control_btn.btns.get("next")
         if next_btn:
             self.control_btn.btns["next"].change_frame()
+        else:
+            # error to raise
+            pass
 
 
 class OptionChoicesFrame(BasicFrame):
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
-        super().__init__(master, window, index, *args, **kwargs)
-        # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
+        super().__init__(master, window, *args, **kwargs)
 
         ttk.Label(self.header, text="Select installation options", style="Title.TLabel")
 
         ttk.Label(self.header, text="Choose whether to apply these installation options.", style="Description.TLabel")
 
-        if isinstance(self.window.controller, WizardController):
-            self.is_shortcut = tk.BooleanVar(value=self.window.controller.shortcut)
-            self.is_launch = tk.BooleanVar(value=self.window.controller.launch)
+        self.is_shortcut = tk.BooleanVar(value=False)
+        self.is_launch = tk.BooleanVar(value=False)
 
         ttk.Checkbutton(self.body, text="Create shortcut on Desktop", variable=self.is_shortcut).pack(
             side="top", fill="x"
@@ -208,19 +192,23 @@ class OptionChoicesFrame(BasicFrame):
         self.control_btn.btns["install"].configure(command=self.get_next_frame)
         self.control_btn.pack(side="bottom", fill="x")
 
-    def get_next_frame(self):
-        """ """
-        # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
+        self.bind("<<ActivateFrame>>", self.on_active_frame)
 
-        if isinstance(self.window.controller, WizardController):
-            self.window.controller.save_options(self.is_shortcut.get(), self.is_launch.get())
+    def on_active_frame(self, event):
+        self.is_shortcut.set(self.window.get_shortcut())
+        self.is_launch.set(self.window.get_launch())
+
+    def get_next_frame(self):
+        """
+        """
+        self.window.set_shortcut(self.is_shortcut.get())
+        self.window.set_launch(self.is_launch.get())
         self.control_btn.btns["install"].change_frame()
 
 
 class ProgressFrame(BasicFrame):
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
-        super().__init__(master, window, index, *args, **kwargs)
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
+        super().__init__(master, window, *args, **kwargs)
         self.control_btn = ControlFrame(parent=self, window=window, cancel_btn=True, next_btn=True)
         self.control_btn.pack(side="bottom", fill="x")
 
@@ -234,15 +222,16 @@ class ProgressFrame(BasicFrame):
         self.progress_bar.pack(side="top", fill="x", padx=5, pady=5)
 
         # Progress Bar values
-        self.current_progress = tk.StringVar(value="Progress: 0%")
-        ttk.Label(self.body, textvariable=self.current_progress, style="Description.TLabel").pack(
+        self.progress_var = tk.StringVar(value="Progress: 0%")
+        ttk.Label(self.body, textvariable=self.progress_var, style="Description.TLabel").pack(
             side="top", fill="x", padx=5
         )
 
         # Logs display
-        self.current_logs = tk.StringVar(value="")
+        self.console_var = tk.StringVar(value="")
+
         self.console = ttk.Label(
-            self.body, textvariable=self.current_logs, wraplength=window.width, style="Description.TLabel"
+            self.body, textvariable=self.console_var, wraplength=window.width, style="Description.TLabel"
         )
         self.console.pack(side="top", fill="x", padx=5)
 
@@ -250,74 +239,34 @@ class ProgressFrame(BasicFrame):
         self.control_btn.btns["next"].toggle_btn(False)
 
         self.bind("<<ActivateFrame>>", self.on_active_frame)
-        self.bind("<<InstallationComplete>>", self.on_installation_complete)
-
-        # thread handling
-        self.thread = None
-        self.log_manager = None
-        self.file_logger = None
-
-    def progress_update(self, value: float):
-        self.progress_bar["value"] = value
-
-    def initialize_user_log_manager(self, logger):
-        # One log after another is displayed in the main window
-        self.log_manager = LogManager(self)
-        logger.addHandler(self.log_manager)
-
-    def initialize_file_log_manager(self, logger):
-        from antares_web_installer.gui.controller import WizardController
-
-        if isinstance(self.window.controller, WizardController):
-            # create new tmp directory if it does not exist yet
-            tmp_dir_path = self.window.controller.log_path
-            tmp_file_name = "web-installer.log"
-
-            tmp_file = tmp_dir_path.joinpath(tmp_file_name)
-
-            # check if file exists
-            if tmp_file not in list(tmp_dir_path.iterdir()):
-                logger.info("No temporary file was found. Create a new one.")
-                # if not, create it first
-
-            if tmp_file.exists():
-                logger.info("Creation successful")
-            else:
-                self.window.raise_error("No temporary file was created or found.")
 
     def on_active_frame(self, event):
-        # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
+        self.window.run_installation(self.progress_update)
 
-        # retrieve app logger
-        main_logger = logging.getLogger("antares_web_installer.app")
+    def progress_update(self, logs: str):
+        if logs.startswith("Progression: "):
+            # progress bar description
+            self.progress_var.set(logs + "%")
 
-        # Initialize log manager
-        self.log_manager = LogManager(self)
-        main_logger.addHandler(self.log_manager)
+            # progress bar value
+            progress_value = float(logs.lstrip("Progression: "))
+            self.progress_bar["value"] = progress_value
 
-        if isinstance(self.window.controller, WizardController):
-            # redirect logs in the target `tmp` directory
-            self.file_logger = logging.FileHandler(self.window.get_log_file())
-            self.file_logger.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s: %(message)s"))
-            self.file_logger.setLevel(logging.INFO)
-            main_logger.addHandler(self.file_logger)
-
-            # Launching installation in concurrency with the current process
-            self.thread = Thread(target=self.window.controller.install, args=())
-            self.thread.start()
+            # in case installation is complete
+            if progress_value == 100:
+                self.window.installation_over()
         else:
-            msg = "The installer encounters an issue while instantiating controller ('NotImplementedError')."
-            main_logger.error(f"Not implemented {type(self.window.controller)}.")
-            self.window.raise_error(msg)
+            # console logs
+            self.console_var.set(logs)
 
-    def on_installation_complete(self, event):
+    def installation_over(self):
+        self.window.update_log_file()
         self.control_btn.btns["next"].toggle_btn(True)
 
 
 class CongratulationFrame(BasicFrame):
-    def __init__(self, master: tk.Misc, window: "WizardView", index: int, *args, **kwargs):
-        super().__init__(master, window, index, *args, **kwargs)
+    def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
+        super().__init__(master, window, *args, **kwargs)
 
         ttk.Label(self.header, text="Congratulations!", style="Title.TLabel").pack(side="top", fill="x")
 
@@ -330,16 +279,3 @@ class CongratulationFrame(BasicFrame):
 
         self.control_btn = ControlFrame(parent=self, window=window, finish_btn=True)
         self.control_btn.pack(side="bottom", fill="x")
-
-        self.bind("<<ActivateFrame>>", self.on_active_frame)
-
-    def on_active_frame(self, event):
-        # Lazy import for typing and testing purposes
-        from antares_web_installer.gui.controller import WizardController
-
-        if isinstance(self.window.controller, WizardController):
-            # copy log file in application log directory
-            file_name = self.window.controller.log_file.name
-            log_directory = self.window.controller.target_dir.joinpath("logs")
-            # self.window.get_log_file().rename(self.window.controller.target_dir.joinpath(log_directory, file_name))
-            shutil.copy(self.window.get_log_file(), log_directory.joinpath(file_name))

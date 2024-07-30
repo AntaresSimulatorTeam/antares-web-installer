@@ -1,3 +1,7 @@
+"""
+    Model View Controller module.
+    Defines base classes for MVC architecture.
+"""
 import tkinter as tk
 
 

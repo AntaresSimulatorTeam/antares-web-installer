@@ -37,7 +37,7 @@ class NextBtn(ChangeFrameButton):
         super().__init__(parent, text=text)
 
     def change_frame(self):
-        self.master.window.current_index += 1
+        self.master.window.get_next_frame()
 
 
 class InstallBtn(NextBtn):
@@ -50,7 +50,7 @@ class BackBtn(ChangeFrameButton):
         super().__init__(parent, text=text)
 
     def change_frame(self):
-        self.master.window.current_index -= 1
+        self.master.window.get_previous_frame()
 
 
 class CancelBtn(CloseableButton):

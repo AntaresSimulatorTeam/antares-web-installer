@@ -1,28 +1,60 @@
+"""
+    View module that defines the installer view named WizardView.
+
+    WizardView uses several custom frames that can be found in the `widgets.frame` module
+    WizardView displays elements using the Microsoft Display Unit as unit for spacing and placement.
+"""
+import logging
 import tkinter as tk
+from collections import OrderedDict
+from pathlib import Path
 from tkinter import ttk, font
 from tkinter.messagebox import showerror
 from typing import TYPE_CHECKING
 
-from .mvc import View
-
-if TYPE_CHECKING:
-    from .controller import WizardController
+from .mvc import View, Controller
 from .widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
 from .widgets import convert_in_du
+
+# Import for typing
+if TYPE_CHECKING:
+    from antares_web_installer.gui.controller import WizardController
+
+logger = logging.getLogger(__name__)
+
+
+class ViewError(Exception):
+    pass
 
 
 class WizardView(View):
     def __init__(self, controller: "WizardController"):
+        """
+            Installer view.
+
+            ** Attributes **
+            title: Title displayed on the top of the window
+            width: Width of the window
+            height: Height of the window
+            frames: List of frames that must be displayed one by one, in the same order
+            current_index: Index of the current frame
+
+            @param controller: the Installer controller that must be a WizardController
+        """
         super().__init__(controller)
 
         # configure window settings
         self.title("Antares Web Installer")
         self.width, self.height = self.set_geometry(250, 200)
-        self.resizable(False, False)
-        self.current_log = ""
 
         # set styles
         self.initialize_styles()
+
+        # initialize index of the first frame to be displayed
+        self.frames = OrderedDict()
+        self._current_frame = "welcome_frame"
+
+        self.resizable(False, False)
 
         # initialize main frame that contains all other frames
         container = ttk.Frame(self)
@@ -31,37 +63,44 @@ class WizardView(View):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        frame_classes = [
-            WelcomeFrame,
-            PathChoicesFrame,
-            OptionChoicesFrame,
-            ProgressFrame,
-            CongratulationFrame,
-        ]
-        self.frames = []
-        for index, frame_class in enumerate(frame_classes):
-            self.frames.append(frame_class(container, self, index))
-            self.frames[index].grid(row=0, column=0, sticky=tk.NSEW)
+        self.frames.update({
+            "welcome_frame": WelcomeFrame(container, self),
+            "path_choice_frame": PathChoicesFrame(container, self),
+            "option_choice_frame": OptionChoicesFrame(container, self),
+            "progress_frame": ProgressFrame(container, self),
+            "congratulation_frame": CongratulationFrame(container, self),
+        })
 
-        # initialize index of the first frame to be displayed
-        self._current_index = 0
-        self.change_frame()
+        for frame in self.frames.values():
+            frame.grid(row=0, column=0, sticky=tk.NSEW)
 
-    @property
-    def current_index(self) -> int:
-        return self._current_index
+        # self.change_frame()
 
-    @current_index.setter
-    def current_index(self, new_index: int):
-        self._current_index = new_index
-        self.change_frame()
-
-    def get_log_file(self):
+    # Attribute accessors
+    def get_next_frame(self):
         try:
-            return self.controller.log_file
-        except AttributeError:
-            self.raise_error("The installer encountered an error while initializing the logger. Please retry later.")
+            tmp_frame_list = list(self.frames.keys())
+            new_frame = tmp_frame_list[tmp_frame_list.index(self._current_frame) + 1]
+        except IndexError:
+            logger.warning("No previous frame selected. Return the current_frame")
+        else:
+            self._current_frame = new_frame
+        self.update_view()
 
+    def get_previous_frame(self):
+        try:
+            tmp_frame_list = list(self.frames.keys())
+            new_frame = tmp_frame_list[tmp_frame_list.index(self._current_frame) - 1]
+        except IndexError:
+            logger.warning("No previous frame selected. Return the current_frame")
+        else:
+            self._current_frame = new_frame
+        self.update_view()
+
+    def get_current_frame(self):
+        return self.frames[self._current_frame]
+
+    # Methods
     def set_geometry(self, width, height):
         """
         @param width:
@@ -90,12 +129,10 @@ class WizardView(View):
             "Description.TLabel", padding=(11, 5), wraplength=self.width - 11 * 2, font=(current_font, 10)
         )
 
-    def change_frame(self):
-        """
-        @return:
-        """
-        frame = self.frames[self.current_index]
+    def update_view(self):
+        frame = self.frames[self._current_frame]
         frame.tkraise()
+        frame = self.get_current_frame()
         frame.update()
         frame.update_idletasks()
         frame.event_generate("<<ActivateFrame>>")
@@ -103,3 +140,31 @@ class WizardView(View):
     def raise_error(self, msg):
         showerror("Error", msg)
         self.quit()
+
+    def get_target_dir(self) -> Path:
+        return self.controller.get_target_dir()
+
+    def set_target_dir(self, new_target_dir: str):
+        self.controller.set_target_dir(Path(new_target_dir))
+
+    def get_launch(self) -> bool:
+        return self.controller.get_launch()
+
+    def set_shortcut(self, new_value: bool):
+        self.controller.set_shortcut(new_value)
+
+    def get_shortcut(self) -> bool:
+        return self.controller.get_shortcut()
+
+    def set_launch(self, new_value: bool):
+        self.controller.set_launch(new_value)
+
+    def update_log_file(self):
+        self.controller.update_log_file()
+
+    def run_installation(self, callback):
+        self.controller.install(callback)
+
+    def installation_over(self):
+        self.controller.installation_over()
+        self.frames["progression_frame"].installation_over()

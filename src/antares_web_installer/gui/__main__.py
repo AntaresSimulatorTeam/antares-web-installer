@@ -16,10 +16,7 @@ def main():
         stream=sys.stdout,
     )
 
-    controller = WizardController(
-        target_dir=TARGET_DIR,
-        source_dir=SRC_DIR,
-    )
+    controller = WizardController()
     controller.run()
 
 
