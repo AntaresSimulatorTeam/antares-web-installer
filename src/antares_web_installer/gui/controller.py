@@ -2,21 +2,17 @@
 references:
 ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redirect-stdout-of-a-child-process-to-a-tkinter-text
 """
-import logging
 import typing
 from pathlib import Path
 from threading import Thread
 
-from .mvc import Controller
+from .mvc import Controller, ControllerError
 from .model import WizardModel
 from .view import WizardView
 
+from antares_web_installer import logger
 from antares_web_installer.app import App
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
-
-
-class ControllerError(Exception):
-    pass
 
 
 class WizardController(Controller):
@@ -32,9 +28,7 @@ class WizardController(Controller):
         self.log_file = None
 
         # init loggers
-        self.logger = logging.getLogger(__name__)
-        print(self.logger.name, self.logger.level, self.logger.handlers, self.logger)
-        self.logger.info("Must be displayed in console")
+        self.logger = logger
 
         # Thread used while installation is running
         self.thread = None
@@ -47,7 +41,7 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir = Path("logs/")
+        self.log_dir = self.model.source_dir.joinpath("logs/")
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
@@ -102,10 +96,14 @@ class WizardController(Controller):
         thread = Thread(target=self.app.run(), args=())
         thread.start()
 
-    def installation_over(self):
-        while self.thread.join():
-            if not self.thread.is_alive():
-                break
+    def installation_over(self) -> None:
+        """
+            This method makes sure the thread terminated. If not, it waits for it to terminate.
+        """
+        if self.thread:
+            while self.thread.join():
+                if not self.thread.is_alive():
+                    break
 
     def get_target_dir(self) -> Path:
         return self.model.target_dir
@@ -127,4 +125,12 @@ class WizardController(Controller):
 
     def update_log_file(self):
         # move log file into Antares directory
-        self.log_file.rename(self.get_target_dir().joinpath(self.log_dir, self.log_file.name))
+        new_log_file_path = self.get_target_dir().joinpath(self.log_file.parent.name, self.log_file.name)
+        try:
+            self.log_file.rename(new_log_file_path)
+        except FileNotFoundError as e:
+            if new_log_file_path.exists():
+                logger.debug("Log file '{}' was already moved. Skip renaming step.".format(new_log_file_path))
+            else:
+                logger.debug("Error while moving log file: {}".format(e))
+                raise ControllerError("No log file found at: {}".format(e))

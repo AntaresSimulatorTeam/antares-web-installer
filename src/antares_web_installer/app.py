@@ -91,7 +91,11 @@ class App:
 
         for index, proc in enumerate(processes_list):
             # evaluate matching between query process name and existing process name
-            matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+            try:
+                matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+            except psutil.NoSuchProcess:
+                logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
+                continue
             if matching_ratio > 0.8:
                 logger.info("Running server found. Attempt to stop it ...")
                 logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")

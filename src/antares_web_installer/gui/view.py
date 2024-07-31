@@ -9,10 +9,10 @@ import tkinter as tk
 from collections import OrderedDict
 from pathlib import Path
 from tkinter import ttk, font
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, showwarning
 from typing import TYPE_CHECKING
 
-from .mvc import View, Controller
+from .mvc import View, ControllerError
 from .widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
 from .widgets import convert_in_du
 
@@ -21,10 +21,6 @@ if TYPE_CHECKING:
     from antares_web_installer.gui.controller import WizardController
 
 logger = logging.getLogger(__name__)
-
-
-class ViewError(Exception):
-    pass
 
 
 class WizardView(View):
@@ -133,12 +129,15 @@ class WizardView(View):
         frame = self.frames[self._current_frame]
         frame.tkraise()
         frame = self.get_current_frame()
-        frame.update()
         frame.update_idletasks()
         frame.event_generate("<<ActivateFrame>>")
 
     def raise_error(self, msg):
         showerror("Error", msg)
+        self.quit()
+
+    def raise_warning(self, msg):
+        showwarning("Warning", msg)
         self.quit()
 
     def get_target_dir(self) -> Path:
@@ -160,11 +159,15 @@ class WizardView(View):
         self.controller.set_launch(new_value)
 
     def update_log_file(self):
-        self.controller.update_log_file()
+        try:
+            self.controller.update_log_file()
+        except ControllerError:
+            self.raise_error("The application was successfully installed although a minor error occurred. You may "
+                             "continue or close the installer.")
 
     def run_installation(self, callback):
         self.controller.install(callback)
 
     def installation_over(self):
         self.controller.installation_over()
-        self.frames["progression_frame"].installation_over()
+        self.frames["progress_frame"].installation_over()

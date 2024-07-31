@@ -258,6 +258,7 @@ class ProgressFrame(BasicFrame):
         else:
             # console logs
             self.console_var.set(logs)
+        self.window.update_idletasks()
 
     def installation_over(self):
         self.window.update_log_file()

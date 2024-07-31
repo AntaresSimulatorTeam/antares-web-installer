@@ -33,6 +33,6 @@ class ProgressHandler(logging.Handler):
 class LogFileHandler(logging.FileHandler):
     def __init__(self, filename):
         super().__init__(filename, 'a')
-        self.setLevel(logging.INFO)
+        self.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s: %(message)s")
         self.setFormatter(formatter)

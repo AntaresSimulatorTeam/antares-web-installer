@@ -17,6 +17,10 @@ class Model:
         self.controller = controller
 
 
+class ViewError(Exception):
+    pass
+
+
 class View(tk.Tk):
     """
     Base class of the MVC view.
@@ -28,6 +32,10 @@ class View(tk.Tk):
     def __init__(self, controller: "Controller"):
         super().__init__()
         self.controller = controller
+
+
+class ControllerError(Exception):
+    pass
 
 
 class Controller:
