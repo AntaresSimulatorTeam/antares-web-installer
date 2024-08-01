@@ -7,6 +7,7 @@ WizardView displays elements using the Microsoft Display Unit as unit for spacin
 
 import logging
 import tkinter as tk
+import typing
 
 from collections import OrderedDict
 from pathlib import Path
@@ -14,16 +15,17 @@ from tkinter import ttk, font
 from tkinter.messagebox import showerror, showwarning
 
 from antares_web_installer.gui.mvc import View, ControllerError, ViewError
-from antares_web_installer.gui.controller import WizardController
 from antares_web_installer.gui.widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
 from antares_web_installer.gui.widgets import convert_in_du
+if typing.TYPE_CHECKING:
+    from antares_web_installer.gui.controller import WizardController
 
 
 logger = logging.getLogger(__name__)
 
 
 class WizardView(View):
-    def __init__(self, controller: WizardController):
+    def __init__(self, controller: "WizardController"):
         """
         Installer view.
 
@@ -37,7 +39,7 @@ class WizardView(View):
         @param controller: the Installer controller that must be a WizardController
         """
         super().__init__(controller)
-        self.controller: WizardController = controller
+        self.controller: "WizardController" = controller
 
         # configure window settings
         self.title("Antares Web Installer")
@@ -140,7 +142,6 @@ class WizardView(View):
 
     def raise_warning(self, msg):
         showwarning("Warning", msg)
-
 
     def get_target_dir(self) -> Path:
         return self.controller.get_target_dir()

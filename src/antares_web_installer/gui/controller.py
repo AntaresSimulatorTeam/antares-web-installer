@@ -36,14 +36,14 @@ class WizardController(Controller):
         self.thread = None
         self.init_file_handler()
 
-    def init_model(self) -> WizardModel:
+    def init_model(self) -> "WizardModel":
         """
         Override Controller.init_model
         @return: a new WizardModel instance
         """
         return WizardModel(self)
 
-    def init_view(self) -> WizardView:
+    def init_view(self) -> "WizardView":
         """
         Override Controller.init_view
         @return: a new WizardView instance

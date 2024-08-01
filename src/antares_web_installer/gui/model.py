@@ -1,12 +1,9 @@
-import dataclasses
 import logging
-import typing
 
 from pathlib import Path
 
-from platformdirs import user_data_dir
-
-from .mvc import Model, Controller
+from antares_web_installer.gui.mvc import Model, Controller
+from antares_web_installer import SRC_DIR, TARGET_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +22,8 @@ class WizardModel(Model):
     """
     def __init__(self, controller: Controller):
         super().__init__(controller)
-        self.source_dir = Path("/home/glaudemau/bin/AntaresWeb-ubuntu-v2.17.1")  # TODO: To change
-        self.target_dir = Path(user_data_dir("AntaresWeb", "RTE"))
+        self.source_dir = SRC_DIR
+        self.target_dir = TARGET_DIR
         self.shortcut = True
         self.launch = True
 
