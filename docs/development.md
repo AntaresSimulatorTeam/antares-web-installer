@@ -1,6 +1,6 @@
 # Development
 
-This projet uses [Hatch](https://hatch.pypa.io/latest/) to manage the development environment.
+This project uses [Hatch](https://hatch.pypa.io/latest/) to manage the development environment.
 
 ## Project setup
 
@@ -116,12 +116,18 @@ hatch clean
 
 This command will remove the `dist` directory.
 
-## Building the binary distribution
+## Building the binary distributions
 
-➢ To build the binary distribution, run:
+➢ To build the binary distribution of the CLI version (linux only), run:
 
 ```shell
-hatch run pyinstaller:build
+hatch run pyinstaller:build_cli
+```
+
+➢ To build the binary distribution of the GUI version (windows only), run:
+
+```shell
+hatch run pyinstaller:build_gui
 ```
 
 This command will run PyInstaller and generate a standalone executable in the `dist` directory.
