@@ -5,7 +5,6 @@ Main entrypoint for the GUI application.
 import logging
 import sys
 
-from antares_web_installer import TARGET_DIR, SRC_DIR
 from antares_web_installer.gui.controller import WizardController
 
 

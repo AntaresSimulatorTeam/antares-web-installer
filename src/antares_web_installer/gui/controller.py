@@ -2,13 +2,14 @@
 references:
 ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redirect-stdout-of-a-child-process-to-a-tkinter-text
 """
+
 import typing
 from pathlib import Path
 from threading import Thread
 
-from .mvc import Controller, ControllerError
-from .model import WizardModel
-from .view import WizardView
+from antares_web_installer.gui.mvc import Controller, ControllerError
+from antares_web_installer.gui.model import WizardModel
+from antares_web_installer.gui.view import WizardView
 
 from antares_web_installer import logger
 from antares_web_installer.app import App
@@ -17,10 +18,11 @@ from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, Lo
 
 class WizardController(Controller):
     """
-        Must intercept all logic errors.
-        Attribute:
-            app: installation application
+    Must intercept all logic errors.
+    Attribute:
+        app: installation application
     """
+
     def __init__(self):
         super().__init__()
         self.app = None
@@ -34,10 +36,18 @@ class WizardController(Controller):
         self.thread = None
         self.init_file_handler()
 
-    def init_model(self, **kwargs) -> WizardModel:
+    def init_model(self) -> WizardModel:
+        """
+        Override Controller.init_model
+        @return: a new WizardModel instance
+        """
         return WizardModel(self)
 
     def init_view(self) -> WizardView:
+        """
+        Override Controller.init_view
+        @return: a new WizardView instance
+        """
         return WizardView(self)
 
     def init_file_handler(self):
@@ -45,7 +55,9 @@ class WizardController(Controller):
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
-            self.logger.debug("No log directory found with path '{}'. Attempt to generate the path.".format(self.log_dir))
+            self.logger.debug(
+                "No log directory found with path '{}'. Attempt to generate the path.".format(self.log_dir)
+            )
             try:
                 self.log_dir.mkdir(parents=True)
             except FileExistsError:
@@ -93,12 +105,12 @@ class WizardController(Controller):
             launch=self.model.launch,
         )
 
-        thread = Thread(target=self.app.run(), args=())
+        thread = Thread(target=self.app.run, args=())
         thread.start()
 
     def installation_over(self) -> None:
         """
-            This method makes sure the thread terminated. If not, it waits for it to terminate.
+        This method makes sure the thread terminated. If not, it waits for it to terminate.
         """
         if self.thread:
             while self.thread.join():

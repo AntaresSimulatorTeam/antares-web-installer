@@ -1,43 +1,43 @@
 """
-    View module that defines the installer view named WizardView.
+View module that defines the installer view named WizardView.
 
-    WizardView uses several custom frames that can be found in the `widgets.frame` module
-    WizardView displays elements using the Microsoft Display Unit as unit for spacing and placement.
+WizardView uses several custom frames that can be found in the `widgets.frame` module
+WizardView displays elements using the Microsoft Display Unit as unit for spacing and placement.
 """
+
 import logging
 import tkinter as tk
+
 from collections import OrderedDict
 from pathlib import Path
 from tkinter import ttk, font
 from tkinter.messagebox import showerror, showwarning
-from typing import TYPE_CHECKING
 
-from .mvc import View, ControllerError
-from .widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
-from .widgets import convert_in_du
+from antares_web_installer.gui.mvc import View, ControllerError, ViewError
+from antares_web_installer.gui.controller import WizardController
+from antares_web_installer.gui.widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
+from antares_web_installer.gui.widgets import convert_in_du
 
-# Import for typing
-if TYPE_CHECKING:
-    from antares_web_installer.gui.controller import WizardController
 
 logger = logging.getLogger(__name__)
 
 
 class WizardView(View):
-    def __init__(self, controller: "WizardController"):
+    def __init__(self, controller: WizardController):
         """
-            Installer view.
+        Installer view.
 
-            ** Attributes **
-            title: Title displayed on the top of the window
-            width: Width of the window
-            height: Height of the window
-            frames: List of frames that must be displayed one by one, in the same order
-            current_index: Index of the current frame
+        ** Attributes **
+        title: Title displayed on the top of the window
+        width: Width of the window
+        height: Height of the window
+        frames: List of frames that must be displayed one by one, in the same order
+        current_index: Index of the current frame
 
-            @param controller: the Installer controller that must be a WizardController
+        @param controller: the Installer controller that must be a WizardController
         """
         super().__init__(controller)
+        self.controller: WizardController = controller
 
         # configure window settings
         self.title("Antares Web Installer")
@@ -59,13 +59,15 @@ class WizardView(View):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        self.frames.update({
-            "welcome_frame": WelcomeFrame(container, self),
-            "path_choice_frame": PathChoicesFrame(container, self),
-            "option_choice_frame": OptionChoicesFrame(container, self),
-            "progress_frame": ProgressFrame(container, self),
-            "congratulation_frame": CongratulationFrame(container, self),
-        })
+        self.frames.update(
+            {
+                "welcome_frame": WelcomeFrame(container, self),
+                "path_choice_frame": PathChoicesFrame(container, self),
+                "option_choice_frame": OptionChoicesFrame(container, self),
+                "progress_frame": ProgressFrame(container, self),
+                "congratulation_frame": CongratulationFrame(container, self),
+            }
+        )
 
         for frame in self.frames.values():
             frame.grid(row=0, column=0, sticky=tk.NSEW)
@@ -138,7 +140,7 @@ class WizardView(View):
 
     def raise_warning(self, msg):
         showwarning("Warning", msg)
-        self.quit()
+
 
     def get_target_dir(self) -> Path:
         return self.controller.get_target_dir()
@@ -156,14 +158,19 @@ class WizardView(View):
         return self.controller.get_shortcut()
 
     def set_launch(self, new_value: bool):
-        self.controller.set_launch(new_value)
+        try:
+            self.controller.set_launch(new_value)
+        except AttributeError:
+            raise ViewError("Controller is not a WizardController")
 
     def update_log_file(self):
         try:
             self.controller.update_log_file()
         except ControllerError:
-            self.raise_error("The application was successfully installed although a minor error occurred. You may "
-                             "continue or close the installer.")
+            self.raise_error(
+                "The application was successfully installed although a minor error occurred. You may "
+                "continue or close the installer."
+            )
 
     def run_installation(self, callback):
         self.controller.install(callback)

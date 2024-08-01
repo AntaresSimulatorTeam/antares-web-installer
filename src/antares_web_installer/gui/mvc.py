@@ -1,7 +1,9 @@
 """
-    Model View Controller module.
-    Defines base classes for MVC architecture.
+Model View Controller module.
+Defines base classes for MVC architecture.
 """
+from __future__ import annotations
+
 import tkinter as tk
 
 
@@ -13,7 +15,7 @@ class Model:
         controller: The controller of the MVC.
     """
 
-    def __init__(self, controller: "Controller"):
+    def __init__(self, controller: Controller):
         self.controller = controller
 
 
@@ -29,7 +31,7 @@ class View(tk.Tk):
         controller: The controller of the MVC.
     """
 
-    def __init__(self, controller: "Controller"):
+    def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
 

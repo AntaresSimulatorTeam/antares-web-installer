@@ -1,7 +1,5 @@
-import logging
 import tkinter as tk
 import typing
-from threading import Thread
 from tkinter import ttk, filedialog
 from typing import TYPE_CHECKING
 
@@ -113,7 +111,6 @@ class PathChoicesFrame(BasicFrame):
     def __init__(self, master: tk.Misc, window: "WizardView", *args, **kwargs):
         super().__init__(master, window, *args, **kwargs)
         # Lazy import for typing and testing
-        from antares_web_installer.gui.controller import WizardController
 
         self.body.grid_rowconfigure(0, weight=1)
         self.body.grid_rowconfigure(1, weight=1)
@@ -199,8 +196,7 @@ class OptionChoicesFrame(BasicFrame):
         self.is_launch.set(self.window.get_launch())
 
     def get_next_frame(self):
-        """
-        """
+        """ """
         self.window.set_shortcut(self.is_shortcut.get())
         self.window.set_launch(self.is_launch.get())
         self.control_btn.btns["install"].change_frame()

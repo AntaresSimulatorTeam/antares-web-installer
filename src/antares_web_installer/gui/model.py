@@ -6,8 +6,7 @@ from pathlib import Path
 
 from platformdirs import user_data_dir
 
-from .mvc import Model
-
+from .mvc import Model, Controller
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +15,22 @@ class ModelError(Exception):
     pass
 
 
-@dataclasses.dataclass
 class WizardModel(Model):
     """
-        Optional attributes
-        @param source_dir:
-        @param target_dir:
-        @param shortcut_dir:
-        @param launch:
+    Optional attributes
+    @param source_dir:
+    @param target_dir:
+    @param shortcut_dir:
+    @param launch:
     """
-    source_dir: typing.Optional[Path] = None
-    target_dir: typing.Optional[Path] = None
-    shortcut: typing.Optional[bool] = True
-    launch: typing.Optional[bool] = True
-
-    def __init__(self, controller):
+    def __init__(self, controller: Controller):
         super().__init__(controller)
         self.source_dir = Path("/home/glaudemau/bin/AntaresWeb-ubuntu-v2.17.1")  # TODO: To change
         self.target_dir = Path(user_data_dir("AntaresWeb", "RTE"))
+        self.shortcut = True
+        self.launch = True
 
-    def set_target_dir(self, new_target_dir: typing.Optional[Path]):
+    def set_target_dir(self, new_target_dir: Path):
         if not self.target_dir.exists():
             logger.error("Target directory '{}' does not exist.".format(self.target_dir))
         else:
