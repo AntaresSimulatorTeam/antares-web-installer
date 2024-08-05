@@ -11,7 +11,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
 
-if os.name == 'nt':
+if os.name == "nt":
     from pythoncom import com_error
 
 import httpx
@@ -235,7 +235,7 @@ class App:
                 description="Launch Antares Web Server in background",
             )
         except com_error as e:
-            raise InstallError("Impossible to create a new shortcut: {}".format(e))
+            logger.error("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
         else:
             logger.info("Server shortcut was successfully created.")
         self.update_progress(100)
