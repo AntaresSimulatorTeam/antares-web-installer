@@ -154,7 +154,11 @@ class WizardView(View):
         return self.controller.get_target_dir()
 
     def set_target_dir(self, new_target_dir: str):
-        self.controller.set_target_dir(Path(new_target_dir))
+        try:
+            self.controller.set_target_dir(Path(new_target_dir))
+        except ControllerError as e:
+            logger.warning("Path is not valid: {}".format(e))
+            self.raise_warning("Path selected is not valid")
 
     def get_launch(self) -> bool:
         return self.controller.get_launch()

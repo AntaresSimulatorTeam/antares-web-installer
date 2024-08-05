@@ -147,12 +147,13 @@ class PathChoicesFrame(BasicFrame):
     def on_active_frame(self, event):
         self.target_path.set(str(self.window.get_target_dir()))
 
-    def browse(self):  # TODO: staticmethod ?
-        dir_name = filedialog.askdirectory(
+    def browse(self):
+        dir_path = filedialog.askdirectory(
             title="Choose the target directory",
             initialdir=get_homedir(),
         )
-        self.target_path.set(dir_name)
+        self.window.set_target_dir(dir_path)
+        self.target_path.set(dir_path)
 
     def get_next_frame(self):
         # Lazy import for typing and testing purposes

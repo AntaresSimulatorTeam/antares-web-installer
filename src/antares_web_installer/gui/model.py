@@ -28,11 +28,18 @@ class WizardModel(Model):
         self.shortcut = True
         self.launch = True
 
-    def set_target_dir(self, new_target_dir: Path):
+    def set_target_dir(self, new_target_dir: Path) -> bool:
+        """
+        Return False if target does not exist, True otherwise
+        @param new_target_dir:
+        @return:
+        """
         if not self.target_dir.exists():
             logger.error("Target directory '{}' does not exist.".format(self.target_dir))
+            return False
         else:
             self.target_dir = new_target_dir
+            return True
 
     def set_shortcut(self, new_shortcut: bool):
         self.shortcut = new_shortcut

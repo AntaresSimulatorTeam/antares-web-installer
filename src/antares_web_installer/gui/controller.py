@@ -110,7 +110,12 @@ class WizardController(Controller):
             logger.debug(e)
 
         thread = Thread(target=self.app.run, args=())
-        thread.start()
+
+        try:
+            thread.start()
+        except InstallError as e:
+            logger.error(e)
+            self.view.raise_error("An error occured. Please retry later.")
 
     def installation_over(self) -> None:
         """
@@ -125,7 +130,9 @@ class WizardController(Controller):
         return self.model.target_dir
 
     def set_target_dir(self, path: Path):
-        self.model.set_target_dir(path)  # errors ?
+        result = self.model.set_target_dir(path)
+        if not result:
+            raise ControllerError("Path '{}' is not a directory.".format(path))
 
     def get_shortcut(self) -> bool:
         return self.model.shortcut

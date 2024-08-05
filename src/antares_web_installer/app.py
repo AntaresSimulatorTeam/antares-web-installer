@@ -11,7 +11,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
 
-from pythoncom import com_error
+if os.name == 'nt':
+    from pythoncom import com_error
 
 import httpx
 import psutil
