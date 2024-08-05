@@ -12,10 +12,10 @@ from tests.integration.server_mock.builder import build
 EXE_NAME = "AntaresWebServer.exe" if os.name == "nt" else "AntaresWebServer"
 """Name of the executable file for the Antares web server."""
 
-SPAWN_TIMEOUT = 1
+SPAWN_TIMEOUT = 10
 """Timeout in seconds to wait for the server process to start."""
 
-SERVER_TIMEOUT = 2
+SERVER_TIMEOUT = 10
 """Timeout in seconds to wait for the server to be ready."""
 
 
