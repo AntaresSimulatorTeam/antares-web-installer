@@ -15,8 +15,15 @@ from tkinter import ttk, font
 from tkinter.messagebox import showerror, showwarning
 
 from antares_web_installer.gui.mvc import View, ControllerError, ViewError
-from antares_web_installer.gui.widgets.frame import WelcomeFrame, PathChoicesFrame, OptionChoicesFrame, CongratulationFrame, ProgressFrame
+from antares_web_installer.gui.widgets.frame import (
+    WelcomeFrame,
+    PathChoicesFrame,
+    OptionChoicesFrame,
+    CongratulationFrame,
+    ProgressFrame,
+)
 from antares_web_installer.gui.widgets import convert_in_du
+
 if typing.TYPE_CHECKING:
     from antares_web_installer.gui.controller import WizardController
 

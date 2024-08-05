@@ -9,7 +9,7 @@ import webbrowser
 
 from difflib import SequenceMatcher
 from pathlib import Path
-from shutil import copy2, copytree, SameFileError
+from shutil import copy2, copytree
 
 from pythoncom import com_error
 

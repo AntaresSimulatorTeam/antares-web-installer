@@ -20,6 +20,7 @@ class WizardModel(Model):
     @param shortcut_dir:
     @param launch:
     """
+
     def __init__(self, controller: Controller):
         super().__init__(controller)
         self.source_dir = SRC_DIR

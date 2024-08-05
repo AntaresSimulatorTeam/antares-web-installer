@@ -2,6 +2,7 @@
 Model View Controller module.
 Defines base classes for MVC architecture.
 """
+
 from __future__ import annotations
 
 import tkinter as tk

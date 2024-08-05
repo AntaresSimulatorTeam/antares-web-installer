@@ -10,7 +10,6 @@ It must present the same interface as the `antares_web_installer.shortcuts` modu
 """
 
 import os
-import re
 import typing as t
 
 import win32com.client
