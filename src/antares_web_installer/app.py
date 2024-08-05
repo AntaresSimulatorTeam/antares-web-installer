@@ -11,6 +11,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree, SameFileError
 
+from pythoncom import com_error
+
 import httpx
 import psutil
 
@@ -21,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 # List of files and directories to exclude during installation
 COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
-POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker", "AntaresWebInstaller"}
-WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe", "AntaresWebInstaller.exe"}
+POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
+WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
@@ -162,7 +164,7 @@ class App:
         src_dir_content_length = len(src_dir_content)
 
         for index, elt_path in enumerate(src_dir_content):
-            if elt_path.name not in EXCLUDED_FILES:
+            if elt_path.name not in EXCLUDED_FILES and not elt_path.name.lower().startswith("antareswebinstaller"):
                 logger.info(f"Copying '{elt_path}'")
                 try:
                     if elt_path.is_file():
@@ -174,9 +176,6 @@ class App:
                 except PermissionError as e:  # pragma: no cover
                     relpath = elt_path.relative_to(self.source_dir).as_posix()
                     raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
-                except SameFileError:
-                    # test if current file is the installer
-                    pass
 
                 self.update_progress((index + 1) * 100 / src_dir_content_length)
 
@@ -226,14 +225,18 @@ class App:
             f"linked to '{self.server_path}' "
             f"and located in '{self.target_dir}' directory."
         )
-        create_shortcut(
-            shortcut_path,
-            exe_path=self.server_path,
-            working_dir=self.target_dir,
-            description="Launch Antares Web Server in background",
-        )
 
-        logger.info("Server shortcut was successfully created.")
+        try:
+            create_shortcut(
+                shortcut_path,
+                exe_path=self.server_path,
+                working_dir=self.target_dir,
+                description="Launch Antares Web Server in background",
+            )
+        except com_error as e:
+            raise InstallError("Impossible to create a new shortcut: {}".format(e))
+        else:
+            logger.info("Server shortcut was successfully created.")
         self.update_progress(100)
 
     def start_server(self):

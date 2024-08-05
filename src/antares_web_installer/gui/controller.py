@@ -12,7 +12,7 @@ from antares_web_installer.gui.model import WizardModel
 from antares_web_installer.gui.view import WizardView
 
 from antares_web_installer import logger
-from antares_web_installer.app import App
+from antares_web_installer.app import App, InstallError
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
 
 
@@ -98,12 +98,16 @@ class WizardController(Controller):
 
         self.logger.debug("Initializing installer worker")
 
-        self.app = App(
-            source_dir=self.model.source_dir,
-            target_dir=self.model.target_dir,
-            shortcut=self.model.shortcut,
-            launch=self.model.launch,
-        )
+        try:
+            self.app = App(
+                source_dir=self.model.source_dir,
+                target_dir=self.model.target_dir,
+                shortcut=self.model.shortcut,
+                launch=self.model.launch,
+            )
+        except InstallError as e:
+            logger.warning("Impossible to create a new shortcut. Skip this step.")
+            logger.debug(e)
 
         thread = Thread(target=self.app.run, args=())
         thread.start()
@@ -146,3 +150,5 @@ class WizardController(Controller):
             else:
                 logger.debug("Error while moving log file: {}".format(e))
                 raise ControllerError("No log file found at: {}".format(e))
+        except PermissionError as e:
+            logger.debug("Impossible to move log file: {}".format(e))
