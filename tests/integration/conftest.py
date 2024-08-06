@@ -52,6 +52,7 @@ def ping(host: str, port: int, timeout: float = 2) -> bool:
 def antares_web_server_fixture(antares_web_server_path: Path) -> t.Generator[subprocess.Popen, None, None]:
     """Fixture used to provide a running instance of the Antares web server."""
     # Spawn the server process
+    assert antares_web_server_path.exists()
     server = subprocess.Popen(
         [str(antares_web_server_path)],
         stdout=subprocess.PIPE,
@@ -78,7 +79,6 @@ def antares_web_server_fixture(antares_web_server_path: Path) -> t.Generator[sub
             time.sleep(0.1)
         else:
             raise RuntimeError("The server did not start in time.")
-
         yield server
 
     finally:
