@@ -17,10 +17,9 @@ if os.name == "nt":
 import httpx
 import psutil
 
+from antares_web_installer import logger
 from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
-
-logger = logging.getLogger(__name__)
 
 # List of files and directories to exclude during installation
 COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
@@ -79,6 +78,7 @@ class App:
             self.start_server()
             self.current_step += 1
             self.open_browser()
+            self.current_step += 1
 
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
@@ -164,6 +164,8 @@ class App:
         src_dir_content = list(self.source_dir.iterdir())
         src_dir_content_length = len(src_dir_content)
 
+        initial_value = self.progress
+
         for index, elt_path in enumerate(src_dir_content):
             if elt_path.name not in EXCLUDED_FILES and not elt_path.name.lower().startswith("antareswebinstaller"):
                 logger.info(f"Copying '{elt_path}'")
@@ -178,7 +180,8 @@ class App:
                     relpath = elt_path.relative_to(self.source_dir).as_posix()
                     raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
 
-                self.update_progress((index + 1) * 100 / src_dir_content_length)
+                self.update_progress(initial_value + (index + 1) * 100 / src_dir_content_length)
+        logger.info("File copy completed.")
 
     def check_version(self) -> str:
         """
@@ -189,12 +192,14 @@ class App:
 
         try:
             logger.info("Attempt to get version of Antares server...")
-            version = subprocess.check_output(args, text=True, stderr=subprocess.PIPE).strip()
+            version = subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=30).strip()
         except FileNotFoundError as e:
             raise InstallError(f"Can't check version: {e}") from e
         except subprocess.CalledProcessError as e:
             reason = textwrap.indent(e.stderr, "  | ", predicate=lambda line: True)
             raise InstallError(f"Can't check version:\n{reason}") from e
+        except subprocess.TimeoutExpired as e:
+            raise InstallError(f"Impossible to check previous version: {e}") from e
 
         # ensure the version number is in the form 'x.x' or 'x.x.x'
         matched_value = re.match(r"^(\d(.\d)+)+", version)
@@ -235,7 +240,7 @@ class App:
                 description="Launch Antares Web Server in background",
             )
         except com_error as e:
-            logger.error("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
+            raise InstallError("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
         else:
             logger.info("Server shortcut was successfully created.")
         self.update_progress(100)
@@ -276,6 +281,7 @@ class App:
                 if res.status_code:
                     logger.info("Server is now available.")
                     self.update_progress(100)
+                    logger.debug("Update progress was called.")
                     break
             finally:
                 nb_attempts += 1
@@ -287,6 +293,7 @@ class App:
         """
         Open server URL in default user's browser
         """
+        logger.debug("In open browser method.")
         url = "http://localhost:8080/"
         try:
             webbrowser.open(url=url, new=2)

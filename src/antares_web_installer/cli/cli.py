@@ -41,18 +41,21 @@ def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **k
     target_dir = Path(target_dir).expanduser().absolute()
     src_dir = Path(src_dir).expanduser().absolute()
 
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)-15s] %(message)s", stream=sys.stdout)
+    cli_logger = logging.StreamHandler()
+    cli_logger.setLevel(logging.INFO)
+    cli_logger.setFormatter(logging.Formatter("[%(asctime)-15s] %(message)s"))
+    logger.addHandler(cli_logger)
 
-    logger.info(f"Starting installation in directory: '{target_dir}'...")
+    cli_logger.info(f"Starting installation in directory: '{target_dir}'...")
     app = App(source_dir=src_dir, target_dir=target_dir, **kwargs)
     try:
         app.run()
     except InstallError as e:
         # Display only the error message without traceback
-        logger.error(e)
+        cli_logger.error(e)
         raise SystemExit(1)
     except KeyboardInterrupt:
-        logger.error("Installation interrupted.")
+        cli_logger.error("Installation interrupted.")
         raise SystemExit(1)
 
     logger.info("Done.")

@@ -16,6 +16,20 @@ from antares_web_installer.app import App, InstallError
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
 
 
+class InstallationThread(Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, *, daemon=None):
+        super().__init__(group, target, name, args, kwargs, daemon=daemon)
+
+    def run(self):
+        try:
+            super().run()
+        except OSError as e:
+            raise e
+        except InstallError as e:
+            raise e
+
+
 class WizardController(Controller):
     """
     Must intercept all logic errors.
@@ -34,7 +48,7 @@ class WizardController(Controller):
 
         # Thread used while installation is running
         self.thread = None
-        self.init_file_handler()
+        # self.init_file_handler()
 
     def init_model(self) -> "WizardModel":
         """
@@ -51,30 +65,27 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir = self.model.source_dir.joinpath("logs/")
+        self.log_dir = self.model.target_dir.joinpath("logs/")
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
+            self.log_dir = self.model.source_dir.joinpath("logs/")  # use the source directory as tmp dir for logs
             self.logger.debug(
                 "No log directory found with path '{}'. Attempt to generate the path.".format(self.log_dir)
             )
-            try:
-                self.log_dir.mkdir(parents=True)
-            except FileExistsError:
-                self.logger.warning("Path '{}' already exists. Skip creation step.".format(self.log_dir))
-            else:
-                self.logger.info("Path '{}' was successfully created.".format(self.log_dir))
+            self.logger.info("Path '{}' was successfully created.".format(self.log_dir))
 
         self.log_file = self.log_dir.joinpath(tmp_file_name)
 
         # check if file exists
         if self.log_file not in list(self.log_dir.iterdir()):
             # if not, create it first
-            with open(self.log_file, "w") as f:
+            with open(self.log_file, "a") as f:
                 pass
             f.close()
 
     def init_log_file_handler(self):
+        self.init_file_handler()
         log_file_handler = LogFileHandler(self.log_file)
         self.logger.addHandler(log_file_handler)
 
@@ -93,8 +104,11 @@ class WizardController(Controller):
 
     def install(self, callback: typing.Callable):
         self.init_log_file_handler()
+        self.logger.debug("file logger initialized.")
         self.init_console_handler(callback)
+        self.logger.debug("console logger initialized.")
         self.init_progress_handler(callback)
+        self.logger.debug("progress logger initialized.")
 
         self.logger.debug("Initializing installer worker")
 
@@ -109,13 +123,12 @@ class WizardController(Controller):
             logger.warning("Impossible to create a new shortcut. Skip this step.")
             logger.debug(e)
 
-        thread = Thread(target=self.app.run, args=())
+        thread = InstallationThread(target=self.app.run, args=())
 
         try:
-            thread.start()
+            thread.run()
         except InstallError as e:
-            logger.error(e)
-            self.view.raise_error("An error occured. Please retry later.")
+            self.view.raise_error(e)
 
     def installation_over(self) -> None:
         """
@@ -147,15 +160,26 @@ class WizardController(Controller):
         self.model.set_launch(new_value)
 
     def update_log_file(self):
-        # move log file into Antares directory
-        new_log_file_path = self.get_target_dir().joinpath(self.log_file.parent.name, self.log_file.name)
-        try:
-            self.log_file.rename(new_log_file_path)
-        except FileNotFoundError as e:
-            if new_log_file_path.exists():
-                logger.debug("Log file '{}' was already moved. Skip renaming step.".format(new_log_file_path))
-            else:
-                logger.debug("Error while moving log file: {}".format(e))
-                raise ControllerError("No log file found at: {}".format(e))
-        except PermissionError as e:
-            logger.debug("Impossible to move log file: {}".format(e))
+        # close log file handler
+        logger.debug("Terminate log file handler.")
+        log_file_handler = logger.handlers[0]
+
+        log_file_handler.flush()
+        log_file_handler.close()
+
+        logger.removeHandler(log_file_handler)
+        logger.debug("Log file handler was successfully removed")
+
+        # If log file was newly created, it is located in source dir
+        if self.log_file.parent.parent == self.model.source_dir:
+            # move log file into Antares logs directory
+            new_log_file_path = self.get_target_dir().joinpath(self.log_file.parent.name, self.log_file.name)
+            try:
+                self.log_file.replace(new_log_file_path)
+            except FileNotFoundError as e:
+                if new_log_file_path.exists():
+                    logger.debug("Log file '{}' was already moved. Skip renaming step.".format(new_log_file_path))
+                else:
+                    logger.debug("Error while moving log file: {}".format(e))
+            except PermissionError as e:
+                logger.debug("Impossible to move log file: {}".format(e))
