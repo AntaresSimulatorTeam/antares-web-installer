@@ -76,7 +76,7 @@ dependencies = [
     "mypy>=1.0.0",
     "fastapi",
     "pyinstaller",
-    "httpx=0.27.0"
+    "httpx==0.27.0"
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/antares_web_installer tests}"
