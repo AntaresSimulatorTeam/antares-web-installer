@@ -1,5 +1,4 @@
 import logging
-import sys
 import typing as t
 from pathlib import Path
 
@@ -46,16 +45,16 @@ def install_cli(src_dir: t.Union[str, Path], target_dir: t.Union[str, Path], **k
     cli_logger.setFormatter(logging.Formatter("[%(asctime)-15s] %(message)s"))
     logger.addHandler(cli_logger)
 
-    cli_logger.info(f"Starting installation in directory: '{target_dir}'...")
+    logger.info(f"Starting installation in directory: '{target_dir}'...")
     app = App(source_dir=src_dir, target_dir=target_dir, **kwargs)
     try:
         app.run()
     except InstallError as e:
         # Display only the error message without traceback
-        cli_logger.error(e)
+        logger.error(e)
         raise SystemExit(1)
     except KeyboardInterrupt:
-        cli_logger.error("Installation interrupted.")
+        logger.error("Installation interrupted.")
         raise SystemExit(1)
 
     logger.info("Done.")
