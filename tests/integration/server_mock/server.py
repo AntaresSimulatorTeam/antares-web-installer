@@ -5,7 +5,6 @@ It provides a simple FastAPI server that can be used to test the functionality o
 
 This server will only run 10 seconds, so it is not suitable for long tests.
 """
-
 import argparse
 
 import uvicorn
@@ -15,7 +14,7 @@ from tests.integration.server_mock.web import app
 # Define the server configuration
 HOST = "127.0.0.1"
 PORT = 8080
-VERSION = "2.14.0"
+VERSION = "2.14.4"
 
 
 def main():

@@ -1,5 +1,4 @@
 import dataclasses
-import logging
 import os
 import re
 import subprocess
@@ -130,8 +129,9 @@ class App:
 
             # update config file
             logger.info("Update configuration file...")
-            config_path = self.target_dir.joinpath("config.yaml")
-            update_config(config_path, config_path, version)
+            src_config_path = self.source_dir.joinpath("config.yaml")
+            target_config_path = self.target_dir.joinpath("config.yaml")
+            update_config(src_config_path, target_config_path, version)
             logger.info("Configuration file updated.")
             self.update_progress(50)
 
@@ -286,7 +286,10 @@ class App:
             finally:
                 nb_attempts += 1
                 if nb_attempts == max_attempts:
-                    raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts.")
+                    try:
+                        server_process.wait(timeout=5)
+                    except subprocess.TimeoutExpired as e:
+                        raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts: {e}")
                 time.sleep(5)
 
     def open_browser(self):

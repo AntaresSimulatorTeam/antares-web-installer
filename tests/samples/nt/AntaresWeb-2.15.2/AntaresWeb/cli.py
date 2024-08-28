@@ -6,9 +6,11 @@ Support script for Windows systems
 import sys
 import uvicorn
 
+from . import __version__
+
 
 def get_version():
-    print("2.15.2")
+    print(__version__)
 
 
 # entry point

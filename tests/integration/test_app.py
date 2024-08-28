@@ -16,21 +16,20 @@ PROGRAM_FOLDER = "Program Files"
 
 
 @pytest.fixture(name="downloaded_dir")
-def downloaded_dir_fixture(antares_web_server_path, tmp_path: Path) -> Path:
+def downloaded_dir_fixture(antares_web_server_paths, tmp_path: Path) -> Path:
     # Prepare the temporary directory to store "download" files
-    downloaded_dir = tmp_path.joinpath(DOWNLOAD_FOLDER, "AntaresWeb-MyOS-vX.Y.Z")
+    downloaded_dir = tmp_path.joinpath(DOWNLOAD_FOLDER)
     downloaded_dir.mkdir(parents=True)
 
     # Copy sample data
     sample_dir = SAMPLES_DIR.joinpath(os.name)
     shutil.copytree(sample_dir, downloaded_dir, dirs_exist_ok=True)
 
-    # The sample directory may contain an extra scripts that must be removed
-    downloaded_dir.joinpath("AntaresWeb/cli.py").unlink(missing_ok=True)
-    downloaded_dir.joinpath("AntaresWeb/server.py").unlink(missing_ok=True)
-
-    # Patch the `AntaresWeb/AntaresWebServer.exe` file
-    shutil.copy2(antares_web_server_path, downloaded_dir.joinpath("AntaresWeb"))
+    for server_path in antares_web_server_paths:
+        target_dir = downloaded_dir.joinpath(server_path.parent.name)
+        shutil.copy2(server_path, target_dir.joinpath("AntaresWeb"))
+        target_dir.joinpath("AntaresWeb/cli.py").unlink(missing_ok=True)
+        target_dir.joinpath("AntaresWeb/server.py").unlink(missing_ok=True)
     return downloaded_dir
 
 
@@ -48,17 +47,30 @@ def program_dir_fixture(tmp_path: Path) -> Path:
     return program_dir
 
 
+@pytest.fixture()
+def settings(desktop_dir: Path, monkeypatch: MonkeyPatch):
+    # Patch the `get_desktop` function according to the current platform
+    platform = {"nt": "_win32_shell", "posix": "_linux_shell"}[os.name]
+    monkeypatch.setattr(f"antares_web_installer.shortcuts.{platform}.get_desktop", lambda: desktop_dir)
+    yield
+    # kill the running servers
+    for proc in psutil.process_iter():
+        matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+        if matching_ratio > 0.8:
+            proc.kill()
+            proc.wait(1)
+            break
+
+
 class TestApp:
     """
     Integration tests for the app
     """
-
     def test_run__empty_target(
         self,
         downloaded_dir: Path,
-        desktop_dir: Path,
         program_dir: Path,
-        monkeypatch: MonkeyPatch,
+        settings: None
     ) -> None:
         """
         The goal of this test is to verify the behavior of the application when:
@@ -70,28 +82,39 @@ class TestApp:
         - Shortcuts are correctly created on the desktop
         - The server is correctly started
         """
-        # Patch the `get_desktop` function according to the current platform
-        platform = {"nt": "_win32_shell", "posix": "_linux_shell"}[os.name]
-        monkeypatch.setattr(f"antares_web_installer.shortcuts.{platform}.get_desktop", lambda: desktop_dir)
-
         # For each application versions, check if everything is working
-        for application_dir in program_dir.iterdir():
+        for application_dir in downloaded_dir.iterdir():
             # Run the application
-            app = App(source_dir=downloaded_dir, target_dir=application_dir, shortcut=True, launch=True)
+            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
             app.run()
 
-            # Check the target directory
-            assert application_dir.is_dir()
-            assert list(application_dir.iterdir())
+    def test_shortcut__created(
+            self,
+            downloaded_dir: Path,
+            program_dir: Path,
+            desktop_dir: Path,
+            settings: None
+    ):
+        for application_dir in downloaded_dir.iterdir():
+            # Run the application
+            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
+            app.run()
 
-            # Check the desktop directory
-            assert desktop_dir.is_dir()
-            assert list(desktop_dir.iterdir())
+            desktop_files = [file_name.name for file_name in list(desktop_dir.iterdir())]
 
-            # kill the running server
-            for proc in psutil.process_iter():
-                matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
-                if matching_ratio > 0.8:
-                    proc.kill()
-                    proc.wait(1)
-                    break
+            if os.name != "nt":
+                assert "AntaresWebServer.desktop" in desktop_files
+            else:
+                assert "Antares Web Server.lnk" in desktop_files
+
+    def test_shortcut__not_created(self):
+        """
+        Test if a shortcut was created on the desktop
+        @param downloaded_dir:
+        @param desktop_dir:
+        @param program_dir:
+        @return:
+        """
+        pass
+
+

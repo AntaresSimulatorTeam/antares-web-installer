@@ -23,7 +23,11 @@ def update_config(source_path: Path, target_path: Path, version: str) -> None:
 
     version_info = tuple(map(int, version.split(".")))
     if version_info < (2, 15):
-        update_to_2_15(config)
+        try:
+            update_to_2_15(config)
+        except AttributeError:
+            with target_path.open("r") as f:
+                config = yaml.safe_load(f)
 
-    with target_path.open(mode="w") as f:
+    with source_path.open(mode="w") as f:
         yaml.dump(config, f)
