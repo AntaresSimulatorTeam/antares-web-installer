@@ -66,12 +66,8 @@ class TestApp:
     """
     Integration tests for the app
     """
-    def test_run__empty_target(
-        self,
-        downloaded_dir: Path,
-        program_dir: Path,
-        settings: None
-    ) -> None:
+
+    def test_run__empty_target(self, downloaded_dir: Path, program_dir: Path, settings: None) -> None:
         """
         The goal of this test is to verify the behavior of the application when:
         - The Antares server is not running
@@ -88,13 +84,7 @@ class TestApp:
             app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
             app.run()
 
-    def test_shortcut__created(
-            self,
-            downloaded_dir: Path,
-            program_dir: Path,
-            desktop_dir: Path,
-            settings: None
-    ):
+    def test_shortcut__created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: None):
         for application_dir in downloaded_dir.iterdir():
             # Run the application
             app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
@@ -116,5 +106,3 @@ class TestApp:
         @return:
         """
         pass
-
-

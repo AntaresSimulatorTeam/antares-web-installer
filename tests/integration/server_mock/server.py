@@ -5,10 +5,9 @@ It provides a simple FastAPI server that can be used to test the functionality o
 
 This server will only run 10 seconds, so it is not suitable for long tests.
 """
+
 import argparse
-
 import uvicorn
-
 from tests.integration.server_mock.web import app
 
 # Define the server configuration

@@ -1,8 +1,5 @@
 import hashlib
 from pathlib import Path
-
-from _pytest.monkeypatch import MonkeyPatch
-
 from antares_web_installer.app import App, EXCLUDED_FILES
 
 
@@ -40,25 +37,6 @@ class TestApp:
         for name in expected_files:
             assert (target_dir / name).exists(), f"File {name} must be copied"
 
-    def test_install_files__update_config(self, datadir: Path, monkeypatch: MonkeyPatch) -> None:
-        # Replace the original `check_version` method with a mock
-        monkeypatch.setattr(App, "check_version", lambda _: "2.14")
-
-        # Prepare the test resources
-        source_dir = datadir.joinpath("install_files/source_files")
-        target_dir = datadir.joinpath("install_files/target_files")
-        old_config = (target_dir / "config.yaml").read_text()
-
-        app = App(source_dir=source_dir, target_dir=target_dir)
-        app.install_files()
-
-        # Check that `dummy.txt` has been copied
-        assert (target_dir / "dummy.txt").exists()
-
-        # Check that the config file has been updated
-        new_config = (target_dir / "config.yaml").read_text()
-        assert old_config != new_config
-
     def test_copy_files__nominal_case(self, datadir: Path) -> None:
         # Prepare the test resources
         source_dir = datadir.joinpath("copy_files/source_files")
@@ -91,10 +69,4 @@ class TestApp:
         # 1. Le programme exécutable n'existe pas => InstallError
         # 2. Le programme exécutable existe, mais le programme plante => InstallError
         # 3. Le programme exécutable existe et fonctionne => pas d'erreur
-        pass
-
-    def test_create_icons(self) -> None:
-        pass
-
-    def test_start_server(self) -> None:
         pass

@@ -33,6 +33,7 @@ dependencies = [
     'pywin32<=306; sys_platform == "win32"',
     'httpx<0.28',
     'platformdirs<=4.2.2',
+    'uvicorn',
 ]
 
 [project.urls]
@@ -52,10 +53,12 @@ dependencies = [
     "fastapi",
     "pyinstaller",
     "httpx==0.27.0",
+    "requests",
     "platformdirs==4.2.2",
+    "uvicorn",
 ]
 [tool.hatch.envs.default.scripts]
-test = "pytest {args:tests}"
+test = "pytest {args:tests} --basetemp=target"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
     "- coverage combine",
