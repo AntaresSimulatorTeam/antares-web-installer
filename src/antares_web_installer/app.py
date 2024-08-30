@@ -153,6 +153,7 @@ class App:
             logger.info("No existing files found. Starting file copy...")
             copytree(self.source_dir, self.target_dir, dirs_exist_ok=True)
             logger.info("Files was successfully copied.")
+            self.version = self.check_version()
             self.update_progress(100)
 
     def copy_files(self):
