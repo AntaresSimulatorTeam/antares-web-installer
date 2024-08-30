@@ -56,14 +56,6 @@ def create_shortcut(
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
 
-    target_parent, target_name = str(target).rsplit("\\", maxsplit=1)
-    new_target_name = "Antares Web Server.lnk"
-    new_target = os.path.join(target_parent, new_target_name)
-
-    # remove any existing shortcut
-    if os.path.exists(new_target):
-        os.remove(new_target)
-
     wscript = _WSHELL.CreateShortCut(str(target))
     wscript.TargetPath = str(exe_path)
     wscript.Arguments = " ".join(arguments)
@@ -74,6 +66,3 @@ def create_shortcut(
     if icon_path:
         wscript.IconLocation = str(icon_path)
     wscript.save()
-
-    # add spaces to shortcut name
-    os.rename(target, new_target)

@@ -21,7 +21,7 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp"}
+COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp", "*.zip"}
 POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
 WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
@@ -47,6 +47,7 @@ class App:
     progress: float = dataclasses.field(init=False)
     nb_steps: int = dataclasses.field(init=False)
     completed_step: int = dataclasses.field(init=False)
+    version: str = dataclasses.field(init=False)
 
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
@@ -123,15 +124,15 @@ class App:
         if self.target_dir.is_dir() and list(self.target_dir.iterdir()):
             logger.info("Existing files were found. Proceed checking old version...")
             # check app version
-            version = self.check_version()
-            logger.info(f"Old application version : {version}.")
+            old_version = self.check_version()
+            logger.info(f"Old application version : {old_version}.")
             self.update_progress(25)
 
             # update config file
             logger.info("Update configuration file...")
             src_config_path = self.source_dir.joinpath("config.yaml")
             target_config_path = self.target_dir.joinpath("config.yaml")
-            update_config(src_config_path, target_config_path, version)
+            update_config(src_config_path, target_config_path, old_version)
             logger.info("Configuration file updated.")
             self.update_progress(50)
 
@@ -143,8 +144,8 @@ class App:
 
             # check new version of the application
             logger.info("Check new application version...")
-            version = self.check_version()
-            logger.info(f"New application version : {version}.")
+            self.version = self.check_version()
+            logger.info(f"New application version : {self.version}.")
             self.update_progress(100)
 
         else:
@@ -217,9 +218,12 @@ class App:
         Create a local server icon and a browser icon on desktop and
         """
         # prepare a shortcut into the desktop directory
+        desktop_path = Path(get_desktop())
+
         logger.info("Generating server shortcut on desktop...")
-        shortcut_name = SHORTCUT_NAMES[os.name]
-        shortcut_path = Path(get_desktop()).joinpath(shortcut_name)
+        shortcut_name, shortcut_ext = SHORTCUT_NAMES[os.name].split('.')
+        new_shortcut_name = f"{shortcut_name}-{self.version}.{shortcut_ext}"
+        shortcut_path = desktop_path.joinpath(new_shortcut_name)
 
         # if the shortcut already exists, remove it
         shortcut_path.unlink(missing_ok=True)
@@ -227,7 +231,7 @@ class App:
 
         # shortcut generation
         logger.info(
-            f"Shortcut will be created in {shortcut_path}, "
+            f"Shortcut {new_shortcut_name} will be created in {shortcut_path}, "
             f"linked to '{self.server_path}' "
             f"and located in '{self.target_dir}' directory."
         )
@@ -242,7 +246,8 @@ class App:
         except com_error as e:
             raise InstallError("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
         else:
-            logger.info("Server shortcut was successfully created.")
+            assert shortcut_path in list(desktop_path.iterdir())
+            logger.info(f"Server shortcut {shortcut_path} was successfully created.")
         self.update_progress(100)
 
     def start_server(self):
@@ -287,8 +292,9 @@ class App:
                 nb_attempts += 1
                 if nb_attempts == max_attempts:
                     try:
-                        server_process.wait(timeout=5)
-                    except subprocess.TimeoutExpired as e:
+                        httpx.get("http://localhost:8080/", timeout=1)
+                    except httpx.ConnectTimeout:
+                        logger.error("Impossible to launch Antares Web Server after {nb_attempts} attempts.")
                         raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts: {e}")
                 time.sleep(5)
 
