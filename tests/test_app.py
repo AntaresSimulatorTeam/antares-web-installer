@@ -1,5 +1,8 @@
 import hashlib
 from pathlib import Path
+
+import pytest
+
 from antares_web_installer.app import App, EXCLUDED_FILES
 
 
@@ -13,7 +16,7 @@ class TestApp:
         # 3. Vérifier que le serveur a bien été tué
         pass
 
-    def test_install_files__from_scratch(self, tmp_path: Path) -> None:
+    def test_install_files__from_scratch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """
         Case where the target directory does not exist.
         """
@@ -21,6 +24,7 @@ class TestApp:
         source_dir = tmp_path / "source"
         source_dir.mkdir()
         target_dir = tmp_path / "target"
+        monkeypatch.setattr("antares_web_installer.app.App.check_version", lambda _: "2.17.0")
 
         # Say we have dummy files in the source directory
         expected_files = ["dummy.txt", "folder/dummy2.txt"]

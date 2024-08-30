@@ -2,10 +2,12 @@ import os
 import shutil
 from difflib import SequenceMatcher
 from pathlib import Path
+from typing import Any
 
 import psutil
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+import re
 
 from antares_web_installer.app import App
 from tests.samples import SAMPLES_DIR
@@ -67,7 +69,7 @@ class TestApp:
     Integration tests for the app
     """
 
-    def test_run__empty_target(self, downloaded_dir: Path, program_dir: Path, settings: None) -> None:
+    def test_run__empty_target(self, downloaded_dir: Path, program_dir: Path, settings: Any) -> None:
         """
         The goal of this test is to verify the behavior of the application when:
         - The Antares server is not running
@@ -84,18 +86,24 @@ class TestApp:
             app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
             app.run()
 
-    def test_shortcut__created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: None):
+    def test_shortcut__created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: Any):
         for application_dir in downloaded_dir.iterdir():
             # Run the application
             app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
             app.run()
 
-            desktop_files = [file_name.name for file_name in list(desktop_dir.iterdir())]
+            match = 0
 
-            if os.name != "nt":
-                assert "AntaresWebServer.desktop" in desktop_files
-            else:
-                assert "Antares Web Server.lnk" in desktop_files
+            for file in list(desktop_dir.iterdir()):
+                if os.name == "nt":
+                    pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}lnk")
+                    if pattern.fullmatch(file.name):
+                        match += 1
+                else:
+                    pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}desktop")
+                    if pattern.fullmatch(file.name):
+                        match += 1
+            assert match == 1
 
     def test_shortcut__not_created(self):
         """

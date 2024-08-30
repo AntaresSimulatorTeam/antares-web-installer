@@ -222,8 +222,8 @@ class App:
         desktop_path = Path(get_desktop())
 
         logger.info("Generating server shortcut on desktop...")
-        shortcut_name, shortcut_ext = SHORTCUT_NAMES[os.name].split('.')
-        new_shortcut_name = f"{shortcut_name}-{self.version}.{shortcut_ext}"
+        name, ext = SHORTCUT_NAMES[os.name].split('.')
+        new_shortcut_name = f"{name}-{self.version}.{ext}"
         shortcut_path = desktop_path.joinpath(new_shortcut_name)
 
         # if the shortcut already exists, remove it
