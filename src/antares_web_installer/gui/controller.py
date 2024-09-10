@@ -91,7 +91,7 @@ class WizardController(Controller):
     # initialize file handler logger
     def init_console_handler(self, callback):
         """
-        
+
         @param callback:
         @return:
         """
@@ -117,8 +117,8 @@ class WizardController(Controller):
 
     def install(self, callback: typing.Callable):
         """
-            Run App.install method
-            @param callback: function that is used to update logs
+        Run App.install method
+        @param callback: function that is used to update logs
         """
         self.init_log_file_handler()
         self.logger.debug("file logger initialized.")

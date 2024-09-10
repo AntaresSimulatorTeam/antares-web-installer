@@ -222,7 +222,7 @@ class App:
         desktop_path = Path(get_desktop())
 
         logger.info("Generating server shortcut on desktop...")
-        name, ext = SHORTCUT_NAMES[os.name].split('.')
+        name, ext = SHORTCUT_NAMES[os.name].split(".")
         new_shortcut_name = f"{name}-{self.version}.{ext}"
         shortcut_path = desktop_path.joinpath(new_shortcut_name)
 
@@ -294,7 +294,7 @@ class App:
                 if nb_attempts == max_attempts:
                     try:
                         httpx.get("http://localhost:8080/", timeout=1)
-                    except httpx.ConnectTimeout:
+                    except httpx.ConnectTimeout as e:
                         logger.error("Impossible to launch Antares Web Server after {nb_attempts} attempts.")
                         raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts: {e}")
                 time.sleep(5)
