@@ -1,20 +1,23 @@
 import os
 import shutil
+import time
+
+import psutil
+import pytest
+import re
+
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-import psutil
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
-import re
 
-from antares_web_installer.app import App
+from antares_web_installer.app import App, InstallError
 from tests.samples import SAMPLES_DIR
 
 DOWNLOAD_FOLDER = "Download"
 DESKTOP_FOLDER = "Desktop"
-PROGRAM_FOLDER = "Program Files"
+PROGRAM_FOLDER = "ProgramFiles"
 
 
 @pytest.fixture(name="downloaded_dir")
@@ -51,23 +54,47 @@ def program_dir_fixture(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def settings(desktop_dir: Path, monkeypatch: MonkeyPatch):
+    print("Set up data ...")
     # Patch the `get_desktop` function according to the current platform
     platform = {"nt": "_win32_shell", "posix": "_linux_shell"}[os.name]
     monkeypatch.setattr(f"antares_web_installer.shortcuts.{platform}.get_desktop", lambda: desktop_dir)
+    print("Data was set up successfully")
     yield
     # kill the running servers
+    print("Starting killing servers.")
     for proc in psutil.process_iter():
-        matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+        try:
+            matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+        except psutil.NoSuchProcess:
+            continue
         if matching_ratio > 0.8:
             proc.kill()
             proc.wait(1)
             break
+    print("Severs were successfully killed.")
 
 
 class TestApp:
     """
     Integration tests for the app
     """
+
+    @staticmethod
+    def count_shortcut_file(dir_path: Path) -> int:
+        match = 0
+        for file in list(dir_path.iterdir()):
+            if os.name == "nt":
+                pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}lnk")
+                if pattern.fullmatch(file.name):
+                    match += 1
+            else:
+                pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}desktop")
+                if pattern.fullmatch(file.name):
+                    match += 1
+        return match
+
+    def kill_running_server(self):
+        pass
 
     def test_run__empty_target(self, downloaded_dir: Path, program_dir: Path, settings: Any) -> None:
         """
@@ -77,35 +104,50 @@ class TestApp:
 
         The test must verify that:
         - Files are correctly copied to the target directory
-        - Shortcuts are correctly created on the desktop
         - The server is correctly started
         """
-        # For each application versions, check if everything is working
-        for application_dir in downloaded_dir.iterdir():
+        for source_dir in downloaded_dir.iterdir():
             # Run the application
-            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
-            app.run()
+            app = App(source_dir=source_dir, target_dir=program_dir, shortcut=False, launch=True)
+            try:
+                app.run()
+            except InstallError:
+                print("Server execution problem")
+                raise
+
+            # check if application was successfully installed in the target dir (program_dir)
+            assert program_dir.is_dir()
+            assert program_dir.iterdir()
+
+            # check if all files are identical in both source_dir (application_dir) and target_dir (program_dir)
+            program_dir_content = list(program_dir.iterdir())
+            source_dir_content = list(source_dir.iterdir())
+            assert len(source_dir_content) == len(program_dir_content)
+            for index, file in enumerate(source_dir.iterdir()):
+                assert file.name == program_dir_content[index].name
+
+            # give some time for the server to shut down
+            time.sleep(2)
+
+            # remove all files before installing the other versions
+            for file in program_dir.iterdir():
+                if file.is_dir():
+                    shutil.rmtree(file)
+                else:
+                    os.remove(file)
+            program_dir_content = list(program_dir.iterdir())
+            assert len(program_dir_content) == 0
 
     def test_shortcut__created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: Any):
         for application_dir in downloaded_dir.iterdir():
             # Run the application
-            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=True)
+            # Deactivate launch option in order to improve tests speed
+            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=True, launch=False)
             app.run()
-
-            match = 0
-
-            for file in list(desktop_dir.iterdir()):
-                if os.name == "nt":
-                    pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}lnk")
-                    if pattern.fullmatch(file.name):
-                        match += 1
-                else:
-                    pattern = re.compile(r"AntaresWebServer-([0-9]*\.){3}desktop")
-                    if pattern.fullmatch(file.name):
-                        match += 1
+            match = self.count_shortcut_file(desktop_dir)
             assert match == 1
 
-    def test_shortcut__not_created(self):
+    def test_shortcut__not_created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: Any):
         """
         Test if a shortcut was created on the desktop
         @param downloaded_dir:
@@ -113,4 +155,10 @@ class TestApp:
         @param program_dir:
         @return:
         """
-        pass
+        for application_dir in downloaded_dir.iterdir():
+            # Run the application
+            # Deactivate launch option in order to improve tests speed
+            app = App(source_dir=application_dir, target_dir=program_dir, shortcut=False, launch=False)
+            app.run()
+            match = self.count_shortcut_file(desktop_dir)
+            assert match == 0

@@ -10,10 +10,11 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
 
+import httpx
+
 if os.name == "nt":
     from pythoncom import com_error
 
-import httpx
 import psutil
 
 from antares_web_installer import logger
@@ -28,6 +29,8 @@ EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDE
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
+
+SERVER_ADDRESS = "http://127.0.0.1:8080"
 
 
 class InstallError(Exception):
@@ -46,8 +49,8 @@ class App:
     server_path: Path = dataclasses.field(init=False)
     progress: float = dataclasses.field(init=False)
     nb_steps: int = dataclasses.field(init=False)
-    completed_step: int = dataclasses.field(init=False)
     version: str = dataclasses.field(init=False)
+
 
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
@@ -75,10 +78,14 @@ class App:
             self.current_step += 1
 
         if self.launch:
-            self.start_server()
-            self.current_step += 1
-            self.open_browser()
-            self.current_step += 1
+            try:
+                self.start_server()
+            except InstallError as e:
+                raise e
+            else:
+                self.current_step += 1
+                self.open_browser()
+                self.current_step += 1
 
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
@@ -96,6 +103,9 @@ class App:
             # evaluate matching between query process name and existing process name
             try:
                 matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+            except FileNotFoundError:
+                logger.warning("The process '{}' does not exist anymore. Skipping its analysis".format(proc.name()))
+                continue
             except psutil.NoSuchProcess:
                 logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
                 continue
@@ -222,7 +232,7 @@ class App:
         desktop_path = Path(get_desktop())
 
         logger.info("Generating server shortcut on desktop...")
-        name, ext = SHORTCUT_NAMES[os.name].split(".")
+        name, ext = SHORTCUT_NAMES[os.name].split('.')
         new_shortcut_name = f"{name}-{self.version}.{ext}"
         shortcut_path = desktop_path.joinpath(new_shortcut_name)
 
@@ -255,60 +265,58 @@ class App:
         """
         Launch the local server as a background task
         """
-        logger.info("Attempt to start the newly installed server...")
-        args = [str(self.server_path)]
+        logger.info(f"Attempt to start the newly installed server located in '{self.target_dir}'...")
+        logger.debug(f"User permissions: {os.path.exists(self.server_path) and os.access(self.server_path, os.X_OK)}")
+
+        args = [self.server_path]
         server_process = subprocess.Popen(
             args=args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            shell=True,
             cwd=self.target_dir,
+            shell=True,
         )
         self.update_progress(50)
 
         if not server_process.poll():
             logger.info("Server is starting up ...")
         else:
-            logger.info(f"The server unexpectedly stopped running. (code {server_process.returncode})")
+            stdout, stderr = server_process.communicate()
+            msg = f"The server unexpectedly stopped running. (code {server_process.returncode})"
+            logger.info(msg)
+            logger.info(f"Server unexpectedly stopped.\nstdout: {stdout}\nstderr: {stderr}")
+            raise InstallError(msg)
 
         nb_attempts = 0
-        max_attempts = 5
+        max_attempts = 10
 
         while nb_attempts < max_attempts:
-            attempt_info = f"Attempt #{nb_attempts}: "
+            logger.info(f"Attempt #{nb_attempts}...")
             try:
-                res = httpx.get("http://localhost:8080/", timeout=1)
-            except httpx.ConnectError:
-                logger.info(attempt_info + "The server is not accepting request yet. Retry ...")
-            except httpx.ConnectTimeout:
-                logger.info(attempt_info + "The server cannot retrieve a response yet. Retry ...")
-            else:
-                if res.status_code:
-                    logger.info("Server is now available.")
-                    self.update_progress(100)
-                    logger.debug("Update progress was called.")
+                res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
+                if res.status_code == 200:
+                    logger.info("The server is now running.")
                     break
-            finally:
-                nb_attempts += 1
-                if nb_attempts == max_attempts:
-                    try:
-                        httpx.get("http://localhost:8080/", timeout=1)
-                    except httpx.ConnectTimeout as e:
-                        logger.error("Impossible to launch Antares Web Server after {nb_attempts} attempts.")
-                        raise InstallError(f"Impossible to launch Antares Web Server after {nb_attempts} attempts: {e}")
-                time.sleep(5)
+            except httpx.RequestError:
+                time.sleep(1)
+            nb_attempts += 1
+        else:
+            stdout, stderr = server_process.communicate()
+            msg = "The server didn't start in time"
+            logger.error(msg)
+            logger.error(f"stdout: {stdout}\nstderr: {stderr}")
+            raise InstallError(msg)
 
     def open_browser(self):
         """
         Open server URL in default user's browser
         """
         logger.debug("In open browser method.")
-        url = "http://localhost:8080/"
         try:
-            webbrowser.open(url=url, new=2)
+            webbrowser.open(url=SERVER_ADDRESS, new=2)
         except webbrowser.Error as e:
-            raise InstallError(f"Could not open browser at '{url}': {e}") from e
+            raise InstallError(f"Could not open browser at '{SERVER_ADDRESS}': {e}") from e
         else:
             logger.info("Browser was successfully opened.")
         self.update_progress(100)
