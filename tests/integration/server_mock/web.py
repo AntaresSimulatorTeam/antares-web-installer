@@ -26,6 +26,7 @@ async def lifespan(_unused_app: FastAPI) -> t.AsyncGenerator[None, None]:
     asyncio.create_task(stop_server())
     yield
 
+
 app = FastAPI(lifespan=lifespan)
 
 

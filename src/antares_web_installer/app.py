@@ -51,7 +51,6 @@ class App:
     nb_steps: int = dataclasses.field(init=False)
     version: str = dataclasses.field(init=False)
 
-
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
         server_name = SERVER_NAMES[os.name]
@@ -232,7 +231,7 @@ class App:
         desktop_path = Path(get_desktop())
 
         logger.info("Generating server shortcut on desktop...")
-        name, ext = SHORTCUT_NAMES[os.name].split('.')
+        name, ext = SHORTCUT_NAMES[os.name].split(".")
         new_shortcut_name = f"{name}-{self.version}.{ext}"
         shortcut_path = desktop_path.joinpath(new_shortcut_name)
 
