@@ -108,7 +108,14 @@ class TestApp:
         """
         for source_dir in downloaded_dir.iterdir():
             # Run the application
-            app = App(source_dir=source_dir, target_dir=program_dir, shortcut=False, launch=True)
+            # Make sure each application is installed in new directory
+            custom_dir = program_dir.joinpath(source_dir.name)
+            app = App(
+                source_dir=source_dir,
+                target_dir=custom_dir,
+                shortcut=False,
+                launch=True
+            )
             try:
                 app.run()
             except InstallError:
@@ -116,11 +123,11 @@ class TestApp:
                 raise
 
             # check if application was successfully installed in the target dir (program_dir)
-            assert program_dir.is_dir()
-            assert program_dir.iterdir()
+            assert custom_dir.is_dir()
+            assert custom_dir.iterdir()
 
             # check if all files are identical in both source_dir (application_dir) and target_dir (program_dir)
-            program_dir_content = list(program_dir.iterdir())
+            program_dir_content = list(custom_dir.iterdir())
             source_dir_content = list(source_dir.iterdir())
             assert len(source_dir_content) == len(program_dir_content)
             for index, file in enumerate(source_dir.iterdir()):
@@ -128,15 +135,6 @@ class TestApp:
 
             # give some time for the server to shut down
             time.sleep(2)
-
-            # remove all files before installing the other versions
-            for file in program_dir.iterdir():
-                if file.is_dir():
-                    shutil.rmtree(file)
-                else:
-                    os.remove(file)
-            program_dir_content = list(program_dir.iterdir())
-            assert len(program_dir_content) == 0
 
     def test_shortcut__created(self, downloaded_dir: Path, program_dir: Path, desktop_dir: Path, settings: Any):
         for application_dir in downloaded_dir.iterdir():
