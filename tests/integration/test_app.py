@@ -110,12 +110,7 @@ class TestApp:
             # Run the application
             # Make sure each application is installed in new directory
             custom_dir = program_dir.joinpath(source_dir.name)
-            app = App(
-                source_dir=source_dir,
-                target_dir=custom_dir,
-                shortcut=False,
-                launch=True
-            )
+            app = App(source_dir=source_dir, target_dir=custom_dir, shortcut=False, launch=True)
             try:
                 app.run()
             except InstallError:
