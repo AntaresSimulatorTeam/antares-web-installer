@@ -90,18 +90,36 @@ class WizardController(Controller):
 
     # initialize file handler logger
     def init_console_handler(self, callback):
+        """
+
+        @param callback:
+        @return:
+        """
         console_handler = ConsoleHandler(callback)
         self.logger.addHandler(console_handler)
 
     def init_progress_handler(self, callback):
+        """
+        Initialize handler log of progress.
+        The logs generated will be shown on the window console during installation
+        @param callback: function that is used to update logs
+        """
         progress_logger = ProgressHandler(callback)
         self.logger.addHandler(progress_logger)
 
     def run(self) -> None:
+        """
+        start program
+        @return:
+        """
         self.view.update_view()
         super().run()
 
     def install(self, callback: typing.Callable):
+        """
+        Run App.install method
+        @param callback: function that is used to update logs
+        """
         self.init_log_file_handler()
         self.logger.debug("file logger initialized.")
         self.init_console_handler(callback)
