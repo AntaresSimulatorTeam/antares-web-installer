@@ -200,5 +200,5 @@ class WizardController(Controller):
                     logger.debug("Error while moving log file: {}".format(e))
             except PermissionError as e:
                 logger.debug("Impossible to move log file: {}".format(e))
-            except OSError as e:
-                logger.debug("Disk Error while attempting to move log file: ".format(e))
+            except OSError:
+                logger.debug("Disk Error while attempting to move log file: ".format())
