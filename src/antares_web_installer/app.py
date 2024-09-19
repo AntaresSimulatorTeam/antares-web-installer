@@ -89,6 +89,7 @@ class App:
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
         logger.info(f"Progression: {self.progress:.2f}")
+        time.sleep(0.5)
 
     def kill_running_server(self) -> None:
         """
@@ -288,7 +289,7 @@ class App:
             raise InstallError(msg)
 
         nb_attempts = 0
-        max_attempts = 10
+        max_attempts = 30
 
         while nb_attempts < max_attempts:
             logger.info(f"Attempt #{nb_attempts}...")
@@ -311,6 +312,7 @@ class App:
         """
         Open server URL in default user's browser
         """
+        time.sleep(1)
         logger.debug("In open browser method.")
         try:
             webbrowser.open(url=SERVER_ADDRESS, new=2)

@@ -64,7 +64,7 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir = self.model.target_dir.joinpath("logs/")
+        self.log_dir = self.model.source_dir.joinpath("logs/")
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
@@ -200,3 +200,5 @@ class WizardController(Controller):
                     logger.debug("Error while moving log file: {}".format(e))
             except PermissionError as e:
                 logger.debug("Impossible to move log file: {}".format(e))
+            except OSError as e:
+                logger.debug("Disk Error while attempting to move log file: ".format(e))
