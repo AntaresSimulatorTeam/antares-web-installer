@@ -89,6 +89,7 @@ class App:
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
         logger.info(f"Progression: {self.progress:.2f}")
+        time.sleep(0.5)
 
     def kill_running_server(self) -> None:
         """
@@ -111,15 +112,17 @@ class App:
             if matching_ratio > 0.8:
                 logger.info("Running server found. Attempt to stop it ...")
                 logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")
-                running_app = psutil.Process(pid=proc.pid)
-                running_app.kill()
-
                 try:
+                    running_app = psutil.Process(pid=proc.pid)
+                    running_app.kill()
                     running_app.wait(5)
                 except psutil.TimeoutExpired as e:
                     raise InstallError(
                         "Impossible to kill the server. Please kill it manually before relaunching the installer."
                     ) from e
+                except psutil.NoSuchProcess:
+                    logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
+                    continue
                 else:
                     logger.info("The application was successfully stopped.")
             self.update_progress((index + 1) * 100 / processes_list_length)
@@ -288,7 +291,7 @@ class App:
             raise InstallError(msg)
 
         nb_attempts = 0
-        max_attempts = 10
+        max_attempts = 30
 
         while nb_attempts < max_attempts:
             logger.info(f"Attempt #{nb_attempts}...")
@@ -311,6 +314,7 @@ class App:
         """
         Open server URL in default user's browser
         """
+        time.sleep(1)
         logger.debug("In open browser method.")
         try:
             webbrowser.open(url=SERVER_ADDRESS, new=2)
