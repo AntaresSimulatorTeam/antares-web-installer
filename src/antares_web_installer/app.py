@@ -112,15 +112,17 @@ class App:
             if matching_ratio > 0.8:
                 logger.info("Running server found. Attempt to stop it ...")
                 logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")
-                running_app = psutil.Process(pid=proc.pid)
-                running_app.kill()
-
                 try:
+                    running_app = psutil.Process(pid=proc.pid)
+                    running_app.kill()
                     running_app.wait(5)
                 except psutil.TimeoutExpired as e:
                     raise InstallError(
                         "Impossible to kill the server. Please kill it manually before relaunching the installer."
                     ) from e
+                except psutil.NoSuchProcess:
+                    logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
+                    continue
                 else:
                     logger.info("The application was successfully stopped.")
             self.update_progress((index + 1) * 100 / processes_list_length)
