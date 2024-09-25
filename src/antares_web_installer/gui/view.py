@@ -188,5 +188,4 @@ class WizardView(View):
         self.controller.install(callback)
 
     def installation_over(self):
-        self.controller.installation_over()
         self.frames["progress_frame"].installation_over()

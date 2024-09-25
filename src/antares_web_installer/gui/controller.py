@@ -17,17 +17,12 @@ from antares_web_installer.app import App, InstallError
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
 
 
-class InstallationThread(Thread):
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
-        super().__init__(group, target, name, args, kwargs, daemon=daemon)
+def run_installation(app: App) -> None:
+    try:
+        app.run()
+    except Exception as e:
+        logger.exception(f"An error occurred during installation: {e}")
 
-    def run(self):
-        try:
-            super().run()
-        except OSError as e:
-            raise e
-        except InstallError as e:
-            raise e
 
 
 class WizardController(Controller):
@@ -142,21 +137,12 @@ class WizardController(Controller):
             logger.warning("Impossible to create a new shortcut. Skip this step.")
             logger.debug(e)
 
-        thread = InstallationThread(target=self.app.run, args=())
+        self.thread = Thread(target=lambda: run_installation(self.app), args=())
 
         try:
-            thread.start()
+            self.thread.start()
         except InstallError as e:
             self.view.raise_error(e)
-
-    def installation_over(self) -> None:
-        """
-        This method makes sure the thread terminated. If not, it waits for it to terminate.
-        """
-        if self.thread:
-            while self.thread.join():
-                if not self.thread.is_alive():
-                    break
 
     def get_target_dir(self) -> Path:
         return self.model.target_dir
