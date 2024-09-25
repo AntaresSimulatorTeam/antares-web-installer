@@ -145,7 +145,7 @@ class WizardController(Controller):
         thread = InstallationThread(target=self.app.run, args=())
 
         try:
-            thread.run()
+            thread.start()
         except InstallError as e:
             self.view.raise_error(e)
 
