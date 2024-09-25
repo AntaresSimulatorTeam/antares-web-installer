@@ -6,6 +6,7 @@ ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redir
 import typing
 from pathlib import Path
 from threading import Thread
+from typing import Optional
 
 from antares_web_installer.gui.mvc import Controller, ControllerError
 from antares_web_installer.gui.model import WizardModel
@@ -39,8 +40,8 @@ class WizardController(Controller):
     def __init__(self):
         super().__init__()
         self.app = None
-        self.log_dir = None
-        self.log_file = None
+        self.log_dir: Optional[Path] = None
+        self.log_file: Optional[Path] = None
 
         # init loggers
         self.logger = logger
@@ -64,17 +65,18 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir = self.model.target_dir.joinpath("logs/")
+        self.log_dir : Path = self.model.target_dir / "logs"
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
-            self.log_dir = self.model.source_dir.joinpath("logs/")  # use the source directory as tmp dir for logs
+            self.log_dir = self.model.source_dir / "logs"  # use the source directory as tmp dir for logs
             self.logger.debug(
                 "No log directory found with path '{}'. Attempt to generate the path.".format(self.log_dir)
             )
+            self.log_dir.mkdir(parents=True, exist_ok=True)
             self.logger.info("Path '{}' was successfully created.".format(self.log_dir))
 
-        self.log_file = self.log_dir.joinpath(tmp_file_name)
+        self.log_file = self.log_dir / tmp_file_name
 
         # check if file exists
         if self.log_file not in list(self.log_dir.iterdir()):

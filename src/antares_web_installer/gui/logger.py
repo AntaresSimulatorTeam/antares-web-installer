@@ -2,8 +2,11 @@ import logging
 import typing
 
 
+MessageConsumer = typing.Callable[[str], None]
+
+
 class ConsoleHandler(logging.Handler):
-    def __init__(self, callback: typing.Callable):
+    def __init__(self, callback: MessageConsumer):
         logging.Handler.__init__(self)
         self.setLevel(logging.INFO)
         formatter = logging.Formatter("[%(asctime)-15s] %(message)s")
@@ -15,7 +18,7 @@ class ConsoleHandler(logging.Handler):
 
 
 class ProgressHandler(logging.Handler):
-    def __init__(self, callback: typing.Callable):
+    def __init__(self, callback: MessageConsumer):
         """
         This logging handler intercept all logs that are progression values
         @param progress_var: tkinter.StringVar
