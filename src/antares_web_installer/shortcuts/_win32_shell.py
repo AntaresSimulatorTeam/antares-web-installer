@@ -15,9 +15,6 @@ import typing as t
 import win32com.client
 from win32com.shell import shell, shellcon
 
-_WSHELL = win32com.client.Dispatch("Wscript.Shell")
-
-
 # Windows Special Folders
 # see: https://docs.microsoft.com/en-us/windows/win32/shell/csidl
 
@@ -56,6 +53,7 @@ def create_shortcut(
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
 
+    _WSHELL = win32com.client.Dispatch("Wscript.Shell")
     wscript = _WSHELL.CreateShortCut(str(target))
     wscript.TargetPath = str(exe_path)
     wscript.Arguments = " ".join(arguments)
