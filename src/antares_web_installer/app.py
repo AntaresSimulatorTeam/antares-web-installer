@@ -54,7 +54,7 @@ class App:
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
         server_name = SERVER_NAMES[os.name]
-        self.server_path = self.target_dir.joinpath("AntaresWeb", server_name)
+        self.server_path = self.target_dir / "AntaresWeb" / server_name
 
         # Set all progress variables needed to compute current progress of the installation
         self.nb_steps = 2  # kill, install steps
@@ -254,7 +254,7 @@ class App:
                 description="Launch Antares Web Server in background",
             )
         except com_error as e:
-            raise InstallError("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
+            raise InstallError(f"Impossible to create a new shortcut: {e}\nSkipping shortcut creation") from e
         else:
             assert shortcut_path in list(desktop_path.iterdir())
             logger.info(f"Server shortcut {shortcut_path} was successfully created.")
