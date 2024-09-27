@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import re
+import signal
 import subprocess
 import textwrap
 import time
@@ -101,12 +102,12 @@ class App:
         if len(server_processes) > 0:
             logger.info("Attempt to stop running server processes ...")
             for p in server_processes:
-                p.kill()
+                os.kill(p.pid, signal.SIGTERM)
             gone, alive = psutil.wait_procs(server_processes, timeout=30)
             alive_count = len(alive)
             if alive_count > 0:
                 raise InstallError(
-                    f"Failed to kill all server processes, {alive_count}. Please kill them manually before relaunching the installer."
+                    f"Failed to kill all {alive_count} server processes. Please kill them manually before relaunching the installer."
                 )
             else:
                 logger.info("Server processes successfully stopped...")
