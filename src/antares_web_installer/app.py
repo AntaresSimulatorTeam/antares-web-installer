@@ -103,7 +103,7 @@ class App:
             gone, alive = psutil.wait_procs(server_processes, timeout=5)
             if len(alive) > 0 and os.name == "nt":
                 # Dirty hack to circumvent permission issues on windows
-                cmd = "taskkill " + " ".join([f"/PID {p.id}" for p in server_processes])
+                cmd = "taskkill " + " ".join([f"/PID {p.pid}" for p in server_processes])
                 logger.debug(f"Executing {cmd}")
                 os.system(cmd)
                 gone, alive = psutil.wait_procs(server_processes, timeout=5)
