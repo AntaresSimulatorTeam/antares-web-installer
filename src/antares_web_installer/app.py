@@ -7,8 +7,10 @@ import time
 import webbrowser
 
 from difflib import SequenceMatcher
+from multiprocessing import Process
 from pathlib import Path
 from shutil import copy2, copytree
+from typing import List
 
 import httpx
 
@@ -95,35 +97,39 @@ class App:
         Check whether Antares service is up.
         Kill the process if so.
         """
-        processes_list = list(psutil.process_iter(["pid", "name"]))
-        processes_list_length = len(processes_list)
+        server_processes = self._get_server_processes()
+        if len(server_processes) > 0:
+            logger.info("Attempt to stop running server processes ...")
+            for p in server_processes:
+                p.kill()
+            gone, alive = psutil.wait_procs(server_processes, timeout=30)
+            alive_count = len(alive)
+            if alive_count > 0:
+                raise InstallError(
+                    f"Failed to kill all server processes, {alive_count}. Please kill them manually before relaunching the installer."
+                )
+            else:
+                logger.info("Server processes successfully stopped...")
+        else:
+            logger.info("No running server found, resuming installation.")
+        self.update_progress(100)
 
-        for index, proc in enumerate(processes_list):
-            # evaluate matching between query process name and existing process name
+    def _get_server_processes(self) -> List[psutil.Process]:
+        res = []
+        for process in psutil.process_iter(["pid", "name"]):
             try:
-                matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+                # evaluate matching between query process name and existing process name
+                matching_ratio = SequenceMatcher(None, "antareswebserver", process.name().lower()).ratio()
             except FileNotFoundError:
-                logger.warning("The process '{}' does not exist anymore. Skipping its analysis".format(proc.name()))
+                logger.warning("The process '{}' does not exist anymore. Skipping its analysis".format(process.name()))
                 continue
             except psutil.NoSuchProcess:
-                logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
+                logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(process.name()))
                 continue
             if matching_ratio > 0.8:
-                logger.info("Running server found. Attempt to stop it ...")
-                logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")
-                running_app = psutil.Process(pid=proc.pid)
-                running_app.kill()
-
-                try:
-                    running_app.wait(5)
-                except psutil.TimeoutExpired as e:
-                    raise InstallError(
-                        "Impossible to kill the server. Please kill it manually before relaunching the installer."
-                    ) from e
-                else:
-                    logger.info("The application was successfully stopped.")
-            self.update_progress((index + 1) * 100 / processes_list_length)
-        logger.info("No other processes found.")
+                res.append(process)
+                logger.debug(f"Running server found: {process.name()} -  process id: {process.pid}")
+        return res
 
     def install_files(self):
         """ """
@@ -288,7 +294,7 @@ class App:
             raise InstallError(msg)
 
         nb_attempts = 0
-        max_attempts = 10
+        max_attempts = 30
 
         while nb_attempts < max_attempts:
             logger.info(f"Attempt #{nb_attempts}...")
