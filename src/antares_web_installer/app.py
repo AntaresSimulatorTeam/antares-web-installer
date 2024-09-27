@@ -1,14 +1,11 @@
 import dataclasses
 import os
 import re
-import signal
 import subprocess
 import textwrap
 import time
 import webbrowser
-
 from difflib import SequenceMatcher
-from multiprocessing import Process
 from pathlib import Path
 from shutil import copy2, copytree
 from typing import List
@@ -102,8 +99,13 @@ class App:
         if len(server_processes) > 0:
             logger.info("Attempt to stop running server processes ...")
             for p in server_processes:
-                os.kill(p.pid, signal.SIGTERM)
-            gone, alive = psutil.wait_procs(server_processes, timeout=30)
+                p.kill()
+            gone, alive = psutil.wait_procs(server_processes, timeout=5)
+            if len(alive) > 0 and os.name == "nt":
+                # Dirty hack to circumvent permission issues on windows
+                os.system("taskkill " + " ".join([f"/PID {p.id}" for p in server_processes]))
+                gone, alive = psutil.wait_procs(server_processes, timeout=5)
+
             alive_count = len(alive)
             if alive_count > 0:
                 raise InstallError(
