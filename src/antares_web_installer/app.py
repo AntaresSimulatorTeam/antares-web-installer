@@ -299,7 +299,7 @@ class App:
         max_attempts = 30
 
         while nb_attempts < max_attempts:
-            logger.info(f"Attempt #{nb_attempts}...")
+            logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
             try:
                 res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
                 if res.status_code == 200:
