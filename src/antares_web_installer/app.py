@@ -97,25 +97,21 @@ class App:
         """
         server_processes = self._get_server_processes()
         if len(server_processes) > 0:
-            logger.info("Attempt to stop running server processes ...")
+            logger.info("Attempt to stop running Antares server ...")
             for p in server_processes:
-                p.kill()
+                try:
+                    p.kill()
+                except psutil.NoSuchProcess:
+                    logger.debug(f"The process '{p.pid}' was stopped before being killed.")
+                    continue
             gone, alive = psutil.wait_procs(server_processes, timeout=5)
-            if len(alive) > 0 and os.name == "nt":
-                # Dirty hack to circumvent permission issues on windows
-                cmd = ["taskkill"]
-                for p in server_processes:
-                    cmd.extend(["/PID", f"{p.pid}"])
-                subprocess.run(cmd)
-                gone, alive = psutil.wait_procs(server_processes, timeout=5)
-
             alive_count = len(alive)
             if alive_count > 0:
                 raise InstallError(
-                    f"Failed to kill all {alive_count} server processes. Please kill them manually before relaunching the installer."
+                    "Could not to stop Antares server. Please stop it before launching again the installation."
                 )
             else:
-                logger.info("Server processes successfully stopped...")
+                logger.info("Antares server successfully stopped...")
         else:
             logger.info("No running server found, resuming installation.")
         self.update_progress(100)
