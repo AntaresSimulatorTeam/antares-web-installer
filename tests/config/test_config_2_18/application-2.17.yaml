@@ -1,0 +1,42 @@
+security:
+  disabled: false
+  jwt:
+    key: super-secret
+  login:
+    admin:
+      pwd: admin
+
+db:
+  url: "sqlite:////home/john/antares_data/database.db"
+
+storage:
+  tmp_dir: /tmp
+  matrixstore: /home/john/antares_data/matrices
+  archive_dir: /home/john/antares_data/archives
+  allow_deletion: false
+  workspaces:
+    default:
+      path: /home/john/antares_data/internal_studies/
+    studies:
+      path: /home/john/antares_data/studies/
+
+launcher:
+  default: local
+  local:
+    binaries:
+      850: /home/john/opt/antares-8.5.0-Ubuntu-20.04/antares-solver
+      860: /home/john/opt/antares-8.6.0-Ubuntu-20.04/antares-8.6-solver
+    enable_nb_cores_detection: True
+
+debug: false
+
+root_path: "/api"
+
+server:
+  worker_threadpool_size: 12
+  services:
+    - watcher
+    - matrix_gc
+
+logging:
+  level: INFO

@@ -29,5 +29,8 @@ def update_config(source_path: Path, target_path: Path, version: str) -> None:
             with target_path.open("r") as f:
                 config = yaml.safe_load(f)
 
+    if version_info < (2, 18):
+        update_to_2_15(config)
+
     with source_path.open(mode="w") as f:
         yaml.dump(config, f)
