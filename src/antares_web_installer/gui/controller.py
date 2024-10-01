@@ -24,7 +24,6 @@ def run_installation(app: App) -> None:
         logger.exception(f"An error occurred during installation: {e}")
 
 
-
 class WizardController(Controller):
     """
     Must intercept all logic errors.
@@ -60,7 +59,7 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir : Path = self.model.target_dir / "logs"
+        self.log_dir: Path = self.model.target_dir / "logs"
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():

@@ -41,7 +41,7 @@ class View(tk.Tk):
 
     def show_error(self, *args):
         err = traceback.format_exception(*args)
-        messagebox.showerror('Exception', "".join(err))
+        messagebox.showerror("Exception", "".join(err))
 
 
 class ControllerError(Exception):

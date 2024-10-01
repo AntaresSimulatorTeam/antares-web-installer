@@ -59,7 +59,6 @@ def create_shortcut(
     icon_path: t.Union[str, os.PathLike] = "",
     description: str = "",
 ) -> None:
-
     working_dir = working_dir or get_homedir()
 
     if isinstance(arguments, str):
@@ -77,4 +76,3 @@ def create_shortcut(
         if icon_path:
             wscript.IconLocation = str(icon_path)
         wscript.save()
-
