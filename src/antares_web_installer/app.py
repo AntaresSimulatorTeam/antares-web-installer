@@ -5,6 +5,7 @@ import subprocess
 import textwrap
 import time
 import webbrowser
+from contextlib import suppress
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
@@ -300,13 +301,12 @@ class App:
 
         while nb_attempts < max_attempts:
             logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
-            try:
+            with suppress(httpx.RequestError):
                 res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
                 if res.status_code == 200:
                     logger.info("The server is now running.")
                     break
-            except httpx.RequestError:
-                time.sleep(1)
+            time.sleep(1)
             nb_attempts += 1
         else:
             stdout, stderr = server_process.communicate()
