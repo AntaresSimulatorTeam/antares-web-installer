@@ -285,14 +285,15 @@ class App:
         )
         self.update_progress(50)
 
-        nb_attempts = 0
-        max_attempts = 300
-        while nb_attempts < max_attempts:
+        start_time = time.time()
+        max_wait_time = 300
+        nb_attempts = 1
+        while time.time() - start_time < max_wait_time:
             logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
             if server_process.poll() is not None:
                 raise InstallError("Server failed to start, please check server logs.")
             with suppress(httpx.RequestError):
-                res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
+                res = httpx.get(SERVER_ADDRESS + "/health")
                 if res.status_code == 200:
                     logger.info("The server is now running.")
                     break
