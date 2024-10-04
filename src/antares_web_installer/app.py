@@ -5,6 +5,7 @@ import subprocess
 import textwrap
 import time
 import webbrowser
+from abc import abstractclassmethod, ABC, abstractmethod
 from contextlib import suppress
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -279,28 +280,17 @@ class App:
         args = [self.server_path]
         server_process = subprocess.Popen(
             args=args,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
             cwd=self.target_dir,
             shell=True,
         )
         self.update_progress(50)
 
-        if not server_process.poll():
-            logger.info("Server is starting up ...")
-        else:
-            stdout, stderr = server_process.communicate()
-            msg = f"The server unexpectedly stopped running. (code {server_process.returncode})"
-            logger.info(msg)
-            logger.info(f"Server unexpectedly stopped.\nstdout: {stdout}\nstderr: {stderr}")
-            raise InstallError(msg)
-
         nb_attempts = 0
-        max_attempts = 30
-
+        max_attempts = 300
         while nb_attempts < max_attempts:
             logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
+            if server_process.poll() is not None:
+                raise InstallError("Server failed to start, please check server logs.")
             with suppress(httpx.RequestError):
                 res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
                 if res.status_code == 200:
@@ -309,11 +299,7 @@ class App:
             time.sleep(1)
             nb_attempts += 1
         else:
-            stdout, stderr = server_process.communicate()
-            msg = "The server didn't start in time"
-            logger.error(msg)
-            logger.error(f"stdout: {stdout}\nstderr: {stderr}")
-            raise InstallError(msg)
+            raise InstallError("Server didn't start in time, please check server logs.")
 
     def open_browser(self):
         """
