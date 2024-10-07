@@ -5,7 +5,6 @@ import subprocess
 import textwrap
 import time
 import webbrowser
-from abc import abstractclassmethod, ABC, abstractmethod
 from contextlib import suppress
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -281,6 +280,8 @@ class App:
         server_process = subprocess.Popen(
             args=args,
             cwd=self.target_dir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             shell=True,
         )
         self.update_progress(50)
