@@ -146,10 +146,8 @@ class WizardController(Controller):
     def get_target_dir(self) -> Path:
         return self.model.target_dir
 
-    def set_target_dir(self, path: Path):
-        result = self.model.set_target_dir(path)
-        if not result:
-            raise ControllerError("Path '{}' is not a directory.".format(path))
+    def set_target_dir(self, path: Path) -> None:
+        self.model.set_target_dir(path)
 
     def get_shortcut(self) -> bool:
         return self.model.shortcut
