@@ -32,6 +32,9 @@ SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
 
 SERVER_ADDRESS = "http://127.0.0.1:8080"
+HEALTHCHECK_ADDRESS = f"{SERVER_ADDRESS}/api/health"
+
+MAX_SERVER_START_TIME = 60
 
 
 class InstallError(Exception):
@@ -287,14 +290,13 @@ class App:
         self.update_progress(50)
 
         start_time = time.time()
-        max_wait_time = 300
         nb_attempts = 1
-        while time.time() - start_time < max_wait_time:
+        while time.time() - start_time < MAX_SERVER_START_TIME:
             logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
             if server_process.poll() is not None:
                 raise InstallError("Server failed to start, please check server logs.")
             with suppress(httpx.RequestError):
-                res = httpx.get(SERVER_ADDRESS + "/health")
+                res = httpx.get(HEALTHCHECK_ADDRESS)
                 if res.status_code == 200:
                     logger.info("The server is now running.")
                     break
