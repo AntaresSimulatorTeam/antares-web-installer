@@ -68,7 +68,7 @@ def test_server_health(antares_web_server_paths):
         else:
             raise RuntimeError("The server did not start in time.")
 
-        res = requests.get("http://localhost:8080/health", timeout=0.25)
+        res = requests.get("http://localhost:8080/api/health", timeout=0.25)
         assert res.status_code == 200, res.json()
         assert res.json() == {"status": "available"}
 
