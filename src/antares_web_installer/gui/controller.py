@@ -8,13 +8,12 @@ from pathlib import Path
 from threading import Thread
 from typing import Optional
 
-from antares_web_installer.gui.mvc import Controller, ControllerError
-from antares_web_installer.gui.model import WizardModel
-from antares_web_installer.gui.view import WizardView
-
 from antares_web_installer import logger
 from antares_web_installer.app import App, InstallError
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
+from antares_web_installer.gui.model import WizardModel
+from antares_web_installer.gui.mvc import Controller
+from antares_web_installer.gui.view import WizardView
 
 
 def run_installation(app: App) -> None:
