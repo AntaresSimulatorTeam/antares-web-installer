@@ -154,11 +154,7 @@ class WizardView(View):
         return self.controller.get_target_dir()
 
     def set_target_dir(self, new_target_dir: str):
-        try:
-            self.controller.set_target_dir(Path(new_target_dir))
-        except ControllerError as e:
-            logger.warning("Path is not valid: {}".format(e))
-            self.raise_warning("Path selected is not valid")
+        self.controller.set_target_dir(Path(new_target_dir))
 
     def get_launch(self) -> bool:
         return self.controller.get_launch()
@@ -188,5 +184,4 @@ class WizardView(View):
         self.controller.install(callback)
 
     def installation_over(self):
-        self.controller.installation_over()
         self.frames["progress_frame"].installation_over()

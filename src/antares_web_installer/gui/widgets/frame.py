@@ -280,5 +280,5 @@ class CongratulationFrame(BasicFrame):
             style="Description.TLabel",
         ).pack(side="top", fill="x")
 
-        self.control_btn = ControlFrame(parent=self, window=window, finish_btn=True)
+        self.control_btn = ControlFrame(parent=self, window=window, cancel_btn=False, finish_btn=True)
         self.control_btn.pack(side="bottom", fill="x")

@@ -30,7 +30,7 @@ async def lifespan(_unused_app: FastAPI) -> t.AsyncGenerator[None, None]:
 app = FastAPI(lifespan=lifespan)
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
     """
     Endpoint to check that the server is ready.

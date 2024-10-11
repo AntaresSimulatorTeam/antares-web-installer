@@ -5,12 +5,12 @@ import subprocess
 import textwrap
 import time
 import webbrowser
-
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
+from typing import List
 
-import httpx
+import requests
 
 if os.name == "nt":
     from pythoncom import com_error
@@ -31,6 +31,9 @@ SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
 
 SERVER_ADDRESS = "http://127.0.0.1:8080"
+HEALTHCHECK_ADDRESS = f"{SERVER_ADDRESS}/api/health"
+
+MAX_SERVER_START_TIME = 60
 
 
 class InstallError(Exception):
@@ -54,7 +57,7 @@ class App:
     def __post_init__(self):
         # Prepare the path to the executable which is located in the target directory
         server_name = SERVER_NAMES[os.name]
-        self.server_path = self.target_dir.joinpath("AntaresWeb", server_name)
+        self.server_path = self.target_dir / "AntaresWeb" / server_name
 
         # Set all progress variables needed to compute current progress of the installation
         self.nb_steps = 2  # kill, install steps
@@ -95,35 +98,43 @@ class App:
         Check whether Antares service is up.
         Kill the process if so.
         """
-        processes_list = list(psutil.process_iter(["pid", "name"]))
-        processes_list_length = len(processes_list)
+        server_processes = self._get_server_processes()
+        if len(server_processes) > 0:
+            logger.info("Attempt to stop running Antares server ...")
+            for p in server_processes:
+                try:
+                    p.kill()
+                except psutil.NoSuchProcess:
+                    logger.debug(f"The process '{p.pid}' was stopped before being killed.")
+                    continue
+            gone, alive = psutil.wait_procs(server_processes, timeout=5)
+            alive_count = len(alive)
+            if alive_count > 0:
+                raise InstallError(
+                    "Could not to stop Antares server. Please stop it before launching again the installation."
+                )
+            else:
+                logger.info("Antares server successfully stopped...")
+        else:
+            logger.info("No running server found, resuming installation.")
+        self.update_progress(100)
 
-        for index, proc in enumerate(processes_list):
-            # evaluate matching between query process name and existing process name
+    def _get_server_processes(self) -> List[psutil.Process]:
+        res = []
+        for process in psutil.process_iter(["pid", "name"]):
             try:
-                matching_ratio = SequenceMatcher(None, "antareswebserver", proc.name().lower()).ratio()
+                # evaluate matching between query process name and existing process name
+                matching_ratio = SequenceMatcher(None, "antareswebserver", process.name().lower()).ratio()
             except FileNotFoundError:
-                logger.warning("The process '{}' does not exist anymore. Skipping its analysis".format(proc.name()))
+                logger.warning("The process '{}' does not exist anymore. Skipping its analysis".format(process.name()))
                 continue
             except psutil.NoSuchProcess:
-                logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(proc.name()))
+                logger.warning("The process '{}' was stopped before being analyzed. Skipping.".format(process.name()))
                 continue
             if matching_ratio > 0.8:
-                logger.info("Running server found. Attempt to stop it ...")
-                logger.debug(f"Server process:{proc.name()} -  process id: {proc.pid}")
-                running_app = psutil.Process(pid=proc.pid)
-                running_app.kill()
-
-                try:
-                    running_app.wait(5)
-                except psutil.TimeoutExpired as e:
-                    raise InstallError(
-                        "Impossible to kill the server. Please kill it manually before relaunching the installer."
-                    ) from e
-                else:
-                    logger.info("The application was successfully stopped.")
-            self.update_progress((index + 1) * 100 / processes_list_length)
-        logger.info("No other processes found.")
+                res.append(process)
+                logger.debug(f"Running server found: {process.name()} -  process id: {process.pid}")
+        return res
 
     def install_files(self):
         """ """
@@ -254,7 +265,7 @@ class App:
                 description="Launch Antares Web Server in background",
             )
         except com_error as e:
-            raise InstallError("Impossible to create a new shortcut: {}\nSkip shortcut creation".format(e))
+            raise InstallError(f"Impossible to create a new shortcut: {e}\nSkipping shortcut creation") from e
         else:
             assert shortcut_path in list(desktop_path.iterdir())
             logger.info(f"Server shortcut {shortcut_path} was successfully created.")
@@ -270,42 +281,33 @@ class App:
         args = [self.server_path]
         server_process = subprocess.Popen(
             args=args,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
             cwd=self.target_dir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             shell=True,
         )
         self.update_progress(50)
 
-        if not server_process.poll():
-            logger.info("Server is starting up ...")
-        else:
-            stdout, stderr = server_process.communicate()
-            msg = f"The server unexpectedly stopped running. (code {server_process.returncode})"
-            logger.info(msg)
-            logger.info(f"Server unexpectedly stopped.\nstdout: {stdout}\nstderr: {stderr}")
-            raise InstallError(msg)
-
-        nb_attempts = 0
-        max_attempts = 10
-
-        while nb_attempts < max_attempts:
-            logger.info(f"Attempt #{nb_attempts}...")
+        start_time = time.time()
+        nb_attempts = 1
+        while time.time() - start_time < MAX_SERVER_START_TIME:
+            logger.info(f"Waiting for server start (attempt #{nb_attempts})...")
+            if server_process.poll() is not None:
+                raise InstallError("Server failed to start, please check server logs.")
             try:
-                res = httpx.get(SERVER_ADDRESS + "/health", timeout=1)
+                res = requests.get(HEALTHCHECK_ADDRESS)
                 if res.status_code == 200:
                     logger.info("The server is now running.")
                     break
-            except httpx.RequestError:
-                time.sleep(1)
+                else:
+                    logger.debug(f"Got HTTP status code {res.status_code} while requesting {HEALTHCHECK_ADDRESS}")
+                    logger.debug(f"Content: {res.text}")
+            except requests.RequestException as req_err:
+                logger.debug(f"Error while requesting {HEALTHCHECK_ADDRESS}: {req_err}", exc_info=req_err)
+            time.sleep(1)
             nb_attempts += 1
         else:
-            stdout, stderr = server_process.communicate()
-            msg = "The server didn't start in time"
-            logger.error(msg)
-            logger.error(f"stdout: {stdout}\nstderr: {stderr}")
-            raise InstallError(msg)
+            raise InstallError("Server didn't start in time, please check server logs.")
 
     def open_browser(self):
         """

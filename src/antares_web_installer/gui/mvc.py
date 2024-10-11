@@ -6,6 +6,8 @@ Defines base classes for MVC architecture.
 from __future__ import annotations
 
 import tkinter as tk
+import traceback
+from tkinter import messagebox
 
 
 class Model:
@@ -35,6 +37,11 @@ class View(tk.Tk):
     def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
+        self.report_callback_exception = self.show_error
+
+    def show_error(self, *args):
+        err = traceback.format_exception(*args)
+        messagebox.showerror("Exception", "".join(err))
 
 
 class ControllerError(Exception):

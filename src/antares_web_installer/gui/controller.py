@@ -6,27 +6,21 @@ ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redir
 import typing
 from pathlib import Path
 from threading import Thread
-
-from antares_web_installer.gui.mvc import Controller, ControllerError
-from antares_web_installer.gui.model import WizardModel
-from antares_web_installer.gui.view import WizardView
+from typing import Optional
 
 from antares_web_installer import logger
 from antares_web_installer.app import App, InstallError
 from antares_web_installer.gui.logger import ConsoleHandler, ProgressHandler, LogFileHandler
+from antares_web_installer.gui.model import WizardModel
+from antares_web_installer.gui.mvc import Controller
+from antares_web_installer.gui.view import WizardView
 
 
-class InstallationThread(Thread):
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
-        super().__init__(group, target, name, args, kwargs, daemon=daemon)
-
-    def run(self):
-        try:
-            super().run()
-        except OSError as e:
-            raise e
-        except InstallError as e:
-            raise e
+def run_installation(app: App) -> None:
+    try:
+        app.run()
+    except Exception as e:
+        logger.exception(f"An error occurred during installation: {e}")
 
 
 class WizardController(Controller):
@@ -39,8 +33,8 @@ class WizardController(Controller):
     def __init__(self):
         super().__init__()
         self.app = None
-        self.log_dir = None
-        self.log_file = None
+        self.log_dir: Optional[Path] = None
+        self.log_file: Optional[Path] = None
 
         # init loggers
         self.logger = logger
@@ -64,17 +58,18 @@ class WizardController(Controller):
         return WizardView(self)
 
     def init_file_handler(self):
-        self.log_dir = self.model.target_dir.joinpath("logs/")
+        self.log_dir: Path = self.model.target_dir / "logs"
         tmp_file_name = "wizard.log"
 
         if not self.log_dir.exists():
-            self.log_dir = self.model.source_dir.joinpath("logs/")  # use the source directory as tmp dir for logs
+            self.log_dir = self.model.source_dir / "logs"  # use the source directory as tmp dir for logs
             self.logger.debug(
                 "No log directory found with path '{}'. Attempt to generate the path.".format(self.log_dir)
             )
+            self.log_dir.mkdir(parents=True, exist_ok=True)
             self.logger.info("Path '{}' was successfully created.".format(self.log_dir))
 
-        self.log_file = self.log_dir.joinpath(tmp_file_name)
+        self.log_file = self.log_dir / tmp_file_name
 
         # check if file exists
         if self.log_file not in list(self.log_dir.iterdir()):
@@ -140,29 +135,18 @@ class WizardController(Controller):
             logger.warning("Impossible to create a new shortcut. Skip this step.")
             logger.debug(e)
 
-        thread = InstallationThread(target=self.app.run, args=())
+        self.thread = Thread(target=lambda: run_installation(self.app), args=())
 
         try:
-            thread.run()
+            self.thread.start()
         except InstallError as e:
             self.view.raise_error(e)
-
-    def installation_over(self) -> None:
-        """
-        This method makes sure the thread terminated. If not, it waits for it to terminate.
-        """
-        if self.thread:
-            while self.thread.join():
-                if not self.thread.is_alive():
-                    break
 
     def get_target_dir(self) -> Path:
         return self.model.target_dir
 
-    def set_target_dir(self, path: Path):
-        result = self.model.set_target_dir(path)
-        if not result:
-            raise ControllerError("Path '{}' is not a directory.".format(path))
+    def set_target_dir(self, path: Path) -> None:
+        self.model.set_target_dir(path)
 
     def get_shortcut(self) -> bool:
         return self.model.shortcut

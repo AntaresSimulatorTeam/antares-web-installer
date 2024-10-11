@@ -11,12 +11,11 @@ It must present the same interface as the `antares_web_installer.shortcuts` modu
 
 import os
 import typing as t
+from contextlib import contextmanager
 
+import pythoncom
 import win32com.client
 from win32com.shell import shell, shellcon
-
-_WSHELL = win32com.client.Dispatch("Wscript.Shell")
-
 
 # Windows Special Folders
 # see: https://docs.microsoft.com/en-us/windows/win32/shell/csidl
@@ -42,6 +41,15 @@ def get_start_menu() -> str:
     return shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAMS, None, 0)  # type: ignore
 
 
+@contextmanager
+def initialize_com():
+    try:
+        pythoncom.CoInitialize()
+        yield
+    finally:
+        pythoncom.CoUninitialize()
+
+
 def create_shortcut(
     target: t.Union[str, os.PathLike],
     exe_path: t.Union[str, os.PathLike],
@@ -56,13 +64,15 @@ def create_shortcut(
     if isinstance(arguments, str):
         arguments = [arguments] if arguments else []
 
-    wscript = _WSHELL.CreateShortCut(str(target))
-    wscript.TargetPath = str(exe_path)
-    wscript.Arguments = " ".join(arguments)
-    wscript.WorkingDirectory = str(working_dir)
-    wscript.WindowStyle = 0
-    if description:
-        wscript.Description = description
-    if icon_path:
-        wscript.IconLocation = str(icon_path)
-    wscript.save()
+    with initialize_com():
+        _WSHELL = win32com.client.Dispatch("Wscript.Shell")
+        wscript = _WSHELL.CreateShortCut(str(target))
+        wscript.TargetPath = str(exe_path)
+        wscript.Arguments = " ".join(arguments)
+        wscript.WorkingDirectory = str(working_dir)
+        wscript.WindowStyle = 0
+        if description:
+            wscript.Description = description
+        if icon_path:
+            wscript.IconLocation = str(icon_path)
+        wscript.save()

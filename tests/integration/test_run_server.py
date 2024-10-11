@@ -1,7 +1,8 @@
-import httpx  # type: ignore
-import subprocess
 import socket
+import subprocess
 import time
+
+import requests  # type: ignore
 
 SPAWN_TIMEOUT = 10
 """Timeout in seconds to wait for the server process to start."""
@@ -67,7 +68,7 @@ def test_server_health(antares_web_server_paths):
         else:
             raise RuntimeError("The server did not start in time.")
 
-        res = httpx.get("http://localhost:8080/health", timeout=0.25)
+        res = requests.get("http://localhost:8080/api/health", timeout=0.25)
         assert res.status_code == 200, res.json()
         assert res.json() == {"status": "available"}
 
