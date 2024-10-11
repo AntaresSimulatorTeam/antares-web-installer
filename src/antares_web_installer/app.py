@@ -5,13 +5,12 @@ import subprocess
 import textwrap
 import time
 import webbrowser
-from contextlib import suppress
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
 from typing import List
 
-import httpx
+import requests
 
 if os.name == "nt":
     from pythoncom import com_error
@@ -296,15 +295,15 @@ class App:
             if server_process.poll() is not None:
                 raise InstallError("Server failed to start, please check server logs.")
             try:
-                res = httpx.get(HEALTHCHECK_ADDRESS)
+                res = requests.get(HEALTHCHECK_ADDRESS)
                 if res.status_code == 200:
                     logger.info("The server is now running.")
                     break
                 else:
                     logger.debug(f"Got HTTP status code {res.status_code} while requesting {HEALTHCHECK_ADDRESS}")
                     logger.debug(f"Content: {res.text}")
-            except httpx.RequestError as http_err:
-                logger.debug(f"Error while requesting {HEALTHCHECK_ADDRESS}: {http_err}", exc_info=http_err)
+            except requests.RequestException as req_err:
+                logger.debug(f"Error while requesting {HEALTHCHECK_ADDRESS}: {req_err}", exc_info=req_err)
             time.sleep(1)
             nb_attempts += 1
         else:
