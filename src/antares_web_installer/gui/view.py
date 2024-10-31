@@ -14,7 +14,7 @@ from pathlib import Path
 from tkinter import ttk, font
 from tkinter.messagebox import showerror, showwarning
 
-from antares_web_installer.gui.mvc import View, ControllerError, ViewError
+from antares_web_installer.gui.mvc import View, ViewError
 from antares_web_installer.gui.widgets.frame import (
     WelcomeFrame,
     PathChoicesFrame,
@@ -172,13 +172,7 @@ class WizardView(View):
             raise ViewError("Controller is not a WizardController")
 
     def update_log_file(self):
-        try:
-            self.controller.update_log_file()
-        except ControllerError:
-            self.raise_error(
-                "The application was successfully installed although a minor error occurred. You may "
-                "continue or close the installer."
-            )
+        self.controller.update_log_file()
 
     def run_installation(self, callback):
         self.controller.install(callback)

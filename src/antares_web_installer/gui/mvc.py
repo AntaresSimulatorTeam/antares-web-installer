@@ -44,10 +44,6 @@ class View(tk.Tk):
         messagebox.showerror("Exception", "".join(err))
 
 
-class ControllerError(Exception):
-    pass
-
-
 class Controller:
     """
     Base class of the MVC controller.

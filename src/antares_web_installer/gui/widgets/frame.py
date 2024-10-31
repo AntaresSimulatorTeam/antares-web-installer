@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from antares_web_installer.shortcuts import get_homedir
 from .button import CancelBtn, BackBtn, NextBtn, FinishBtn, InstallBtn
-from ..mvc import ControllerError
 
 if TYPE_CHECKING:
     from antares_web_installer.gui.view import WizardView
@@ -153,12 +152,8 @@ class PathChoicesFrame(BasicFrame):
             title="Choose the target directory",
             initialdir=get_homedir(),
         )
-        try:
-            self.window.set_target_dir(dir_path)
-        except ControllerError:
-            pass
-        else:
-            self.target_path.set(dir_path)
+        self.window.set_target_dir(dir_path)
+        self.target_path.set(dir_path)
 
     def get_next_frame(self):
         # Lazy import for typing and testing purposes
