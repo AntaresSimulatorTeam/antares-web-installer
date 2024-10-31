@@ -3,6 +3,7 @@ references:
 ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redirect-stdout-of-a-child-process-to-a-tkinter-text
 """
 
+import shutil
 import typing
 from pathlib import Path
 from threading import Thread
@@ -176,7 +177,7 @@ class WizardController(Controller):
             # move log file into Antares logs directory
             new_log_file_path = self.get_target_dir().joinpath(self.log_file.parent.name, self.log_file.name)
             try:
-                self.log_file.replace(new_log_file_path)
+                shutil.move(str(self.log_file), str(new_log_file_path))
             except FileNotFoundError as e:
                 if new_log_file_path.exists():
                     logger.debug("Log file '{}' was already moved. Skip renaming step.".format(new_log_file_path))
