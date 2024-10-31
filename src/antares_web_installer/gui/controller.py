@@ -2,6 +2,7 @@
 references:
 ebarr: https://stackoverflow.com/questions/23947281/python-multiprocessing-redirect-stdout-of-a-child-process-to-a-tkinter-text
 """
+
 import shutil
 import typing
 from pathlib import Path
