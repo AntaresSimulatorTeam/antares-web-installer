@@ -4,7 +4,6 @@ import re
 import subprocess
 import textwrap
 import time
-import webbrowser
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
