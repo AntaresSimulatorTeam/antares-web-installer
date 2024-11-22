@@ -64,7 +64,7 @@ class App:
         if self.shortcut:
             self.nb_steps += 1
         if self.launch:
-            self.nb_steps += 2
+            self.nb_steps += 1
         self.current_step = 0
         self.progress = 0
 
@@ -80,14 +80,8 @@ class App:
             self.current_step += 1
 
         if self.launch:
-            try:
-                self.start_server()
-            except InstallError as e:
-                raise e
-            else:
-                self.current_step += 1
-                self.open_browser()
-                self.current_step += 1
+            self.start_server()
+            self.current_step += 1
 
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
@@ -313,16 +307,4 @@ class App:
             nb_attempts += 1
         else:
             raise InstallError("Server didn't start in time, please check server logs.")
-
-    def open_browser(self):
-        """
-        Open server URL in default user's browser
-        """
-        logger.debug("In open browser method.")
-        try:
-            webbrowser.open(url=SERVER_ADDRESS, new=2)
-        except webbrowser.Error as e:
-            raise InstallError(f"Could not open browser at '{SERVER_ADDRESS}': {e}") from e
-        else:
-            logger.info("Browser was successfully opened.")
         self.update_progress(100)
