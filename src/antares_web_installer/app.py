@@ -22,8 +22,7 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {"config.yaml", "archives", "internal_studies", "studies",
-                         "logs", "matrices", "tmp", "*.zip"}
+COMMON_EXCLUDED_FILES = {"config.yaml", "archives", "internal_studies", "studies", "logs", "matrices", "tmp", "*.zip"}
 POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
 WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
@@ -150,7 +149,8 @@ class App:
             version_info = tuple(map(int, old_version.split(".")))
             if version_info < (2, 18):
                 raise InstallError(
-                    f"Trying to update from version ${old_version}: updating from version older than 2.18 is not supported, please select a new installation directory.")
+                    f"Trying to update from version ${old_version}: updating from version older than 2.18 is not supported, please select a new installation directory."
+                )
             self.update_progress(25)
 
             # update config file
