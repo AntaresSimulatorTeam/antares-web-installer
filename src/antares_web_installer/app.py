@@ -143,7 +143,7 @@ class App:
             version_info = tuple(map(int, old_version.split(".")))
             if version_info < (2, 18):
                 raise InstallError(
-                    f"Trying to update from version ${old_version}: updating from version older than 2.18 is not supported, please select a new installation directory."
+                    f"Trying to update from version {old_version}: updating from version older than 2.18 is not supported, please select a new installation directory."
                 )
             self.update_progress(25)
 
