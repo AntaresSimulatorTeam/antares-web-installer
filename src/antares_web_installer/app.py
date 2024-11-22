@@ -32,7 +32,7 @@ SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.l
 SERVER_ADDRESS = "http://127.0.0.1:8080"
 HEALTHCHECK_ADDRESS = f"{SERVER_ADDRESS}/api/health"
 
-MAX_SERVER_START_TIME = 60
+MAX_SERVER_START_TIME = 120
 
 
 class InstallError(Exception):
