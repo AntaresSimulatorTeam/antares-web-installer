@@ -13,7 +13,7 @@ from tests.integration.server_mock.web import app
 # Define the server configuration
 HOST = "127.0.0.1"
 PORT = 8080
-VERSION = "2.14.4"
+VERSION = "2.18.0"
 
 
 def main():

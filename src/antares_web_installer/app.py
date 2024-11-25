@@ -4,7 +4,6 @@ import re
 import subprocess
 import textwrap
 import time
-import webbrowser
 from difflib import SequenceMatcher
 from pathlib import Path
 from shutil import copy2, copytree
@@ -22,7 +21,7 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {"config.prod.yaml", "config.yaml", "examples", "logs", "matrices", "tmp", "*.zip"}
+COMMON_EXCLUDED_FILES = {"config.yaml", "archives", "internal_studies", "studies", "logs", "matrices", "tmp", "*.zip"}
 POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
 WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
 EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
@@ -33,7 +32,7 @@ SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.l
 SERVER_ADDRESS = "http://127.0.0.1:8080"
 HEALTHCHECK_ADDRESS = f"{SERVER_ADDRESS}/api/health"
 
-MAX_SERVER_START_TIME = 60
+MAX_SERVER_START_TIME = 120
 
 
 class InstallError(Exception):
@@ -64,7 +63,7 @@ class App:
         if self.shortcut:
             self.nb_steps += 1
         if self.launch:
-            self.nb_steps += 2
+            self.nb_steps += 1
         self.current_step = 0
         self.progress = 0
 
@@ -80,14 +79,8 @@ class App:
             self.current_step += 1
 
         if self.launch:
-            try:
-                self.start_server()
-            except InstallError as e:
-                raise e
-            else:
-                self.current_step += 1
-                self.open_browser()
-                self.current_step += 1
+            self.start_server()
+            self.current_step += 1
 
     def update_progress(self, progress: float):
         self.progress = (progress / self.nb_steps) + (self.current_step / self.nb_steps) * 100
@@ -146,6 +139,11 @@ class App:
             # check app version
             old_version = self.check_version()
             logger.info(f"Old application version : {old_version}.")
+            version_info = tuple(map(int, old_version.split(".")))
+            if version_info < (2, 18):
+                raise InstallError(
+                    f"Trying to update from version {old_version}: updating from version older than 2.18 is not supported, please select a new installation directory."
+                )
             self.update_progress(25)
 
             # update config file
@@ -308,16 +306,4 @@ class App:
             nb_attempts += 1
         else:
             raise InstallError("Server didn't start in time, please check server logs.")
-
-    def open_browser(self):
-        """
-        Open server URL in default user's browser
-        """
-        logger.debug("In open browser method.")
-        try:
-            webbrowser.open(url=SERVER_ADDRESS, new=2)
-        except webbrowser.Error as e:
-            raise InstallError(f"Could not open browser at '{SERVER_ADDRESS}': {e}") from e
-        else:
-            logger.info("Browser was successfully opened.")
         self.update_progress(100)
