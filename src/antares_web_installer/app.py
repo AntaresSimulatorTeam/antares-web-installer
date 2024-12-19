@@ -21,10 +21,16 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {"config.yaml", "archives", "internal_studies", "studies", "logs", "matrices", "tmp", "*.zip"}
-POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
-WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
-EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
+EXCLUDED_ROOT_RESOURCES = {
+    Path("config.yaml"),
+    Path("archives"),
+    Path("internal_studies"),
+    Path("studies"),
+    Path("logs"),
+    Path("matrices"),
+    Path("tmp"),
+    Path("local_workspace"),
+}
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
@@ -182,12 +188,16 @@ class App:
         write or if self.target_dir already exists.
         """
         src_dir_content = list(self.source_dir.iterdir())
-        src_dir_content_length = len(src_dir_content)
+        dirs_to_copy = []
+        for root_dir in src_dir_content:
+            if root_dir.relative_to(self.source_dir) not in EXCLUDED_ROOT_RESOURCES:
+                dirs_to_copy.append(root_dir)
+        src_dir_content_length = len(dirs_to_copy)
 
         initial_value = self.progress
 
-        for index, elt_path in enumerate(src_dir_content):
-            if elt_path.name not in EXCLUDED_FILES and not elt_path.name.lower().startswith("antareswebinstaller"):
+        for index, elt_path in enumerate(dirs_to_copy):
+            if not elt_path.name.lower().startswith("antareswebinstaller"):
                 logger.info(f"Copying '{elt_path}'")
                 try:
                     if elt_path.is_file():
