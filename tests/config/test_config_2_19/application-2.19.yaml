@@ -26,10 +26,12 @@ launcher:
     binaries:
       850: /home/john/opt/antares-8.5.0-Ubuntu-20.04/antares-solver
       860: /home/john/opt/antares-8.6.0-Ubuntu-20.04/antares-8.6-solver
+    enable_nb_cores_detection: True
+    local_workspace: ./local_workspace
 
 debug: false
 
-root_path: ""
+api_prefix: "/api"
 
 server:
   worker_threadpool_size: 12
