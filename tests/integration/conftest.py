@@ -12,11 +12,11 @@ EXE_NAME = "AntaresWebServer.exe" if os.name == "nt" else "AntaresWebServer"
 
 @pytest.fixture(name="antares_web_server_paths", scope="session", autouse=True)
 def antares_web_server_paths_fixture(tmp_path_factory: pytest.TempPathFactory) -> List[Path]:
-    """Fixture used to build both the Antares web server version (2.14.4 and 2.15.2)."""
+    """Fixture used to build both the Antares web server version (2.18.3 and 2.19)."""
     target_dir = tmp_path_factory.mktemp("servers", numbered=False)
 
     apps = []
-    for version in ["2.14.4", "2.15.2"]:
+    for version in ["2.18.3", "2.19"]:
         import tests.integration.server_mock.server as server
 
         server.__dict__["version"] = version
