@@ -21,7 +21,7 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-EXCLUDED_ROOT_RESOURCES = {
+COMMON_EXCLUDED_RESOURCES = {
     Path("config.yaml"),
     Path("archives"),
     Path("internal_studies"),
@@ -31,6 +31,11 @@ EXCLUDED_ROOT_RESOURCES = {
     Path("tmp"),
     Path("local_workspace"),
 }
+
+POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_RESOURCES | {"AntaresWebInstallerCLI"}
+WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_RESOURCES | {"AntaresWebInstaller.exe"}
+EXCLUDED_ROOT_RESOURCES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
+
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
@@ -197,20 +202,19 @@ class App:
         initial_value = self.progress
 
         for index, elt_path in enumerate(dirs_to_copy):
-            if not elt_path.name.lower().startswith("antareswebinstaller"):
-                logger.info(f"Copying '{elt_path}'")
-                try:
-                    if elt_path.is_file():
-                        copy2(elt_path, self.target_dir)
-                    else:
-                        # copy new directory
-                        copytree(elt_path, self.target_dir.joinpath(elt_path.name), dirs_exist_ok=True)
-                # handle permission errors
-                except PermissionError as e:  # pragma: no cover
-                    relpath = elt_path.relative_to(self.source_dir).as_posix()
-                    raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
+            logger.info(f"Copying '{elt_path}'")
+            try:
+                if elt_path.is_file():
+                    copy2(elt_path, self.target_dir)
+                else:
+                    # copy new directory
+                    copytree(elt_path, self.target_dir.joinpath(elt_path.name), dirs_exist_ok=True)
+            # handle permission errors
+            except PermissionError as e:  # pragma: no cover
+                relpath = elt_path.relative_to(self.source_dir).as_posix()
+                raise InstallError(f"Error: Cannot write '{relpath}' in {self.target_dir}: {e}")
 
-                self.update_progress(initial_value + (index + 1) * 100 / src_dir_content_length)
+            self.update_progress(initial_value + (index + 1) * 100 / src_dir_content_length)
         logger.info("File copy completed.")
 
     def check_version(self) -> str:
