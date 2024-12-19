@@ -21,19 +21,16 @@ from antares_web_installer.config import update_config
 from antares_web_installer.shortcuts import create_shortcut, get_desktop
 
 # List of files and directories to exclude during installation
-COMMON_EXCLUDED_FILES = {
-    "config.yaml",
-    "archives",
-    "internal_studies",
-    "studies",
-    "logs",
-    "matrices",
-    "tmp",
-    "local_workspace",
+EXCLUDED_FILES = {
+    Path("config.yaml"),
+    Path("archives"),
+    Path("internal_studies"),
+    Path("studies"),
+    Path("logs"),
+    Path("matrices"),
+    Path("tmp"),
+    Path("local_workspace"),
 }
-POSIX_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker"}
-WINDOWS_EXCLUDED_FILES = COMMON_EXCLUDED_FILES | {"AntaresWebWorker.exe"}
-EXCLUDED_FILES = POSIX_EXCLUDED_FILES if os.name == "posix" else WINDOWS_EXCLUDED_FILES
 
 SERVER_NAMES = {"posix": "AntaresWebServer", "nt": "AntaresWebServer.exe"}
 SHORTCUT_NAMES = {"posix": "AntaresWebServer.desktop", "nt": "AntaresWebServer.lnk"}
@@ -196,7 +193,8 @@ class App:
         initial_value = self.progress
 
         for index, elt_path in enumerate(src_dir_content):
-            if elt_path.name not in EXCLUDED_FILES and not elt_path.name.lower().startswith("antareswebinstaller"):
+            relative_elt_path = elt_path.relative_to(self.source_dir)
+            if relative_elt_path not in EXCLUDED_FILES and not elt_path.name.lower().startswith("antareswebinstaller"):
                 logger.info(f"Copying '{elt_path}'")
                 try:
                     if elt_path.is_file():
