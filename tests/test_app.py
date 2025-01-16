@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from antares_web_installer.app import App, EXCLUDED_FILES
+from antares_web_installer.app import App, EXCLUDED_ROOT_RESOURCES
 
 
 class TestApp:
@@ -62,8 +62,8 @@ class TestApp:
             content = file.read_bytes()
             old_checksum = old_checksum_by_name[relative_path]
             new_checksum = hashlib.md5(content).hexdigest()
-            root_name = relative_path.parts[0]
-            if root_name in EXCLUDED_FILES:
+            root_name = Path(relative_path.parts[0])
+            if root_name in EXCLUDED_ROOT_RESOURCES:
                 assert old_checksum == new_checksum, f"File {file} must not have been modified"
             else:
                 assert old_checksum != new_checksum, f"File {file} must have been updated"
