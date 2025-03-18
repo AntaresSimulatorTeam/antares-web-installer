@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from antares_web_installer.config.config_2_19 import update_to_2_19
+from antares_web_installer.config.config_desktop import update_for_desktop
 
 
 def update_config(source_path: Path, target_config_path: Path, version: str) -> None:
@@ -24,6 +25,8 @@ def update_config(source_path: Path, target_config_path: Path, version: str) -> 
     version_info = tuple(map(int, version.split(".")))
     if version_info < (2, 19):
         update_to_2_19(config)
+
+    update_for_desktop(config)
 
     with target_config_path.open(mode="w") as f:
         yaml.dump(config, f)
