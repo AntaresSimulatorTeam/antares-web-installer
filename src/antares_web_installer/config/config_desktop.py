@@ -18,7 +18,7 @@ def update_for_desktop(config: t.MutableMapping[str, t.Any]) -> None:
         logger.error("storage missing in config file ", config)
         return
     if "workspaces" not in config["storage"]:
-        logger.error("storage missing in config file ", config)
+        logger.error("workspaces missing in storage config ", config["storage"])
         return
     
     workspaces = config["storage"]["workspaces"]
