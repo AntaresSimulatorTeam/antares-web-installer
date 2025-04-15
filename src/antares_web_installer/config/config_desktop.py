@@ -3,12 +3,11 @@ import typing as t
 from antares_web_installer import logger
 
 
-
 def update_for_desktop(config: t.MutableMapping[str, t.Any]) -> None:
     """
     Force desktop_mode to true in config file.
 
-    Rmove workspaces other than default workspace.  
+    Remove workspaces other than default workspace.
 
     :param config: actual configuration
     """
@@ -20,7 +19,6 @@ def update_for_desktop(config: t.MutableMapping[str, t.Any]) -> None:
     if "workspaces" not in config["storage"]:
         logger.error("workspaces missing in storage config ", config["storage"])
         return
-    
     workspaces = config["storage"]["workspaces"]
 
     keys_to_remove = [key for key in workspaces if key != "default"]
