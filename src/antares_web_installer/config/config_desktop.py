@@ -1,7 +1,5 @@
 import typing as t
 
-from antares_web_installer import logger
-
 
 def update_for_desktop(config: t.MutableMapping[str, t.Any]) -> None:
     """
