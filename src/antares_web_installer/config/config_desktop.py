@@ -14,11 +14,9 @@ def update_for_desktop(config: t.MutableMapping[str, t.Any]) -> None:
     config["desktop_mode"] = True
 
     if "storage" not in config:
-        logger.error("storage missing in config file ", config)
-        return
+        raise ValueError("storage missing in config file ", config)
     if "workspaces" not in config["storage"]:
-        logger.error("workspaces missing in storage config ", config["storage"])
-        return
+        raise ValueError("workspaces missing in storage config ", config["storage"])
     workspaces = config["storage"]["workspaces"]
 
     keys_to_remove = [key for key in workspaces if key != "default"]
